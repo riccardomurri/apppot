@@ -1,0 +1,22 @@
+# apppot-snap.exclude
+#
+# List here glob patterns of files to exclude from a AppPot snapshot.
+# For a file to be excluded, a pattern must match its name from the
+# start up to (and excluding) a '/' character.  File names are not
+# normalized, instead they should match exactly as 'tar' sees them,
+# therefore use a leading './' because 'tar' is asked to archive
+# directory '.' in the system root directory.
+#
+./dev
+./mnt
+./proc
+./sys
+./tmp
+./var/lock
+./var/log
+./var/mail
+./var/run
+./var/spool/cron
+./var/spool/mail
+./var/spool/postfix
+./var/tmp

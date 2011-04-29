@@ -11,22 +11,23 @@ computational Grid, and especially to enable users to provide their
 own software to the computing cluster.
 
 AppPot uses [[http://user-mode-linux.sf.net][User Mode Linux]] to provide users with a development and
-running environment they have full control over.  User Mode Linux (UML
-for short) provides a virtualized environment in which users can build
-and run their own computational applications. AppPot augments this
-with scripts that can take a copy of the UML system image and submit
-it as a regular computational job using the ARC middleware.
+running environment /they/ have full control over.  User Mode Linux
+(/UMLx/ for short) provides a virtualized environment in which users
+can build and run their own computational applications. AppPot
+augments this with scripts that can take a copy of the UML system
+image and submit it as a regular computational job using the ARC
+middleware.
 
 ** What is User Mode Linux
 
-User-Mode Linux allows running a Linux kernel as a userspace process
+[[http://user-mode-linux.sf.net][User-Mode Linux]] allows running a Linux kernel as a userspace process
 within a running Linux system; the guest kernel can see a file in the
 host filesystem as if it was a disk device, but it can also mount
 (portions of) the host filesystem into its own filesystem
 hierarchy. Additional helper programs enable use of the host network
 from within the system running in the UML.
 
-From the [[http://user-mode-linux.sf.net][UML website]]:
+From the [[http://user-mode-linux.sf.net][UMLx website]]:
 
   User-Mode Linux gives you a virtual machine that may have more
   hardware and software virtual resources than your actual, physical
@@ -43,21 +44,22 @@ virtualization solutions is that:
   - [[http://user-mode-linux.sf.net][*User Mode Linux]] runs entirely in userspace* (including networking),
     so there is no need for support by the systems administrator, nor
     is any coordinated deployment or setup needed.
-  - UML's use of system resources is more easily controlled: a running
-    UML system is just a process in the host Linux system, so all
+  - UMLx's use of system resources is more easily controlled: a running
+    UMLx system is just a process in the host Linux system, so all
     regular process controls apply.
 
 ** How is UML useful for running computational jobs on a Grid
 
 Users receive a "AppPot system image", which is a raw Linux disk image
-containing a working installation of Debian Linux.  Apart from being
-optimized for running a single-user task in a virtualized environment
-(i.e., multi-user support, hardware-related software and most daemons
-have been turned off), this is a regular Debian install.
+containing a working installation of a Linux distribution.  The
+reference AppPot image is based on Debian (see below): apart from
+being optimized for running a single-user task in a virtualized
+environment (i.e., multi-user support, hardware-related software and
+most daemons have been turned off), this is a regular Debian install.
 
 Users modify the AppPot system image by installing new software, e.g.,
 their own version of a computational code.  They can then submit a
-job to the Grid middleware that just runs UML with the provided modified image.
+job to the Grid middleware that just runs UMLx with the provided modified image.
 A script is provided to create the correct incantation to run the
 AppPot system remotely as a Grid computational job, and have it
 execute a copy of the user's code with the specified parameters.
@@ -66,29 +68,40 @@ installed at the execution site, the script can just send a tarball
 with the differences between the standard AppPot and the user-modified one.
 
 This solves the issue of compiling and deploying each application
-software on each architecture: users compile and run tests on
+software on each platform: users compile and run tests on
 their own desktop.  There's no worry about multiple architecture/OSes
-because all jobs run in the same Debian environment: same environment
+because all jobs run in the same Linux environment: same environment
 for development and execution.
 
-The AppPot system image is accompanied by the helper programs `linux`
-and `slirp`; these are just statically-linked versions of the binaries
-provided by Debian and can be used by anyone for running a UML system
+The AppPot system image is accompanied by the helper programs =linux=
+and =slirp=; these are just statically-linked versions of the binaries
+provided by Debian and can be used by anyone for running a UMLx system
 in their Linux-based desktop (static link guarantees wider
 compatibility).  
 
 Note that, since the AppPot system image is a raw disk image file, it
-can be run through any virtualization software that supports the RAW
+can be run through any virtualization software that supports the /raw/
 disk format (e.g., KVM or Xen): this provides a way to use the AppPot
 system in a more convenient way for users.
 
+** Parts of AppPot
+
+A working AppPot system consists of the following parts:
+  - an /AppPot system image/, i.e., a complete Linux system installed in
+    a partition image file (in [[http://en.wikibooks.org/wiki/QEMU/Images#Image_types][raw format]])
+  - a UMLx =linux= executable for running the Linux system in the
+    AppPot system image, and a =slirp= program for providing network
+    connectivity.
+  - a set of /AppPot scripts/ providing support for the features that
+    AppPot exposes to users: running a computational job upon startup,
+    taking a snapshot of a modified AppPot system, etc.
 
 * Creation of the AppPot system image
 
-Although any Linux system can run with a UML kernel, most Linux
+Although any Linux system can run with a UMLx kernel, most Linux
 distributions ship with configuration that are oriented towards
 Desktop/graphical or server/multi-user usage.  Those systems are
-definitely overkill for a UML system whose sole purpose is to run a
+definitely overkill for a UMLx system whose sole purpose is to run a
 single instance of a computational job.  
 
 On the other hand, the AppPot image needs to be usable by end-users
@@ -99,36 +112,41 @@ The ideal choice for the AppPot system image seems to be Debian
 distribution:
   - A *bare bones* system setup is supported by the installation
     script (in the minimal setup, only three processes are running
-    after system boot, including `/sbin/init`; the total size of
+    after system boot, including =/sbin/init=; the total size of
     installed packages is ~200MB) -- this can be even reduced by
     carefully disabling some features that are not needed in the
     AppPot environment.
   - It has a *vast selection of pre-compiled packages*, that users can
-    easily install with `apt-get`/`aptitude`.  The choice of available
+    easily install with =apt-get=/=aptitude=.  The choice of available
     development tools is probably the largest among Linux
     distributions.
-  - It comes with excellent UML support, including:
-    * pre-packaged UML kernel, matching the distribution's default
+  - It comes with excellent UMLx support, including:
+    * pre-packaged UMLx kernel, matching the distribution's default
       kernel version;
-    * tools to bootstrap a UML disk image;
-    * utilities for UML networking.
+    * tools to bootstrap a UMLx disk image;
+    * utilities for UMLx networking.
+
+Although the reference implementation is based on Debian Linux, the
+AppPot scripts strive to be generic enough to run on any LSB-compliant
+Linux distribution; in particular, they should run on any recent UMLx
+image distributed on the [[http://user-mode-linux.sf.net][UMLx website]]
 
 ** Installation of UML in the host computer
 
-UML runs a modified Linux kernel as a regular process.  A sample
+UMLx runs a modified Linux kernel as a regular process.  A sample
 kernel (Fedora's linux-2.6.24-x86_64) and root image can be downloaded
-from the [[http://user-mode-linux.sf.net][UML website]].  
+from the [[http://user-mode-linux.sf.net][UMLx website]].  
 
-Debian/Ubuntu provide a pre-compiled UML kernel in package
+Debian/Ubuntu provide a pre-compiled UMLx kernel in package
 `user-mode-linux`.  In addition, Debian (hence, Ubuntu) provides
-packages for creating a UML disk image (rootstrap) and for userspace
-UML networking (slirp, vde).
+packages for creating a UML disk image ([[http://linuxappfinder.com/package/rootstrap][=rootstrap=]]) and for userspace
+UMLx networking ([[http://en.wikipedia.org/wiki/Slirp][=slirp=]], [[http://vde.sourceforge.net/][=vde=]]).
 
-The instructions are intended to be performed on a Debian/Ubuntu
+The steps given here are intended to be performed on a Debian/Ubuntu
 system; the following software should be installed as a prerequisite:
   - a User-Mode Linux kernel;
-  - the `slirp` program (compiled with `-DFULL_BOLT` to remove speed restrictions);
-  - the `rootstrap` program to install Debian images.
+  - the =slirp= program (compiled with =-DFULL_BOLT= to remove speed restrictions);
+  - the =rootstrap= program to install Debian images.
 The following command installs prerequisite software on a
 Debian/Ubuntu system:
 #+begin_src sh :exports code :file install-prereq.sh :shebang "#!/bin/sh"
@@ -138,9 +156,9 @@ sudo aptitude install \
   rootstrap
 #+end_src
 
-** The AppPot Debian image
+** The AppPot system image
 
-The AppPot Debian image is a regular Debian GNU/Linux installation,
+The AppPot system image is a regular Debian GNU/Linux installation,
 with the following features:
   - The same image is used by users for code development and testing
     and for running a production job remotely.
@@ -148,40 +166,43 @@ with the following features:
     disabled to save space and execution time.
 
 In particular, this translates into the following requirements:
-  - There is just one unprivileged user in `/etc/passwd`, and this
-    user is entitled to run `root` commands via `sudo` (Grid users
+  - There is just one unprivileged user in =/etc/passwd=, and this
+    user is entitled to run `root` commands via =sudo= (Grid users
     must be able to install additional packages if they are needed
     for code development and/or run time).  In particular, no strong
     security system (like [[SELinux]]) is needed, and all supporting
     code can be removed from the system and its kernel.
-  - Upon booting, the user is dropped directly to a shell prompt;
-    there is no need for `/bin/login`.  There is just one terminal,
-    multiplexed with [[GNU Screen]].
-  - Network access is only *outbound*: users have access to the
+  - Network access is only /outbound/: users have access to the
     system console, and jobs are not usually able to receive
     incoming network traffic at execution sites.  Network daemons
     can thus be removed to save space.
   - In order to run jobs, it should be possible to specify a program
-    to run (with arguments) on the kernel command line; the should
-    execute the specified program non-interactively instead of the
-    shell prompt.
+    to run (with arguments) on the kernel command line; the UMLx
+    machine should execute the specified program non-interactively
+    instead of the shell prompt.
+  - Upon booting, if no command is specified, the user is dropped
+    directly to a shell prompt; there is no need for =/bin/login=.
+    There is just one terminal, multiplexed with [[GNU Screen]].
 
-Debian's program [[rootstrap]] will be used for creating the AppPot
-image.  The `rootstrap` command reads its configuration from the
-system-wide file `/etc/rootstrap/rootstrap.conf` and merges it with
-a `rootstrap.conf` file in the current directory (if it exists).
-The format of the configuration file is documented in the
-[[http://manpages.ubuntu.com/1/rootstrap][rootstrap(1)]] man page.
+*** Creation of the Debian-based AppPot system image
 
-Based on the previous items, AppPot's `rootstrap.conf` builds a Debian
+The reference AppPot system image is based on [[http://www.debian.org/][Debian GNU/Linux]].
+
+Debian's program [[rootstrap]] will be used for creating the AppPot system
+image.  The =rootstrap= command reads its configuration from the
+system-wide file =/etc/rootstrap/rootstrap.conf= and merges it with a
+=rootstrap.conf= file in the current directory (if it exists).  The
+format of the configuration file is documented in the [[http://manpages.ubuntu.com/1/rootstrap][rootstrap(1)]] man
+page.
+
+Based on the previous items, AppPot's =rootstrap.conf= builds a Debian
 system image as follows:
   - 1GB disk space: this should be enough for hosting all the software
     one can possibly want to install for development; the actual
     working/scratch space will always be mounted from the host system.
-  - Use the ext2 filesystem: journaling features provide no advantage
-    here, as the whole disk is just a file in the host filesystem, and
-    the small size of the disk image, combined with its interactive
-    nature make an initial filesystem check just a nuisance.
+  - Use the /ext2/ filesystem: journaling features provide no advantage
+    here, as the whole disk is just a file in the host filesystem,
+    which already provides journaling features.
 #+begin_src sh :tangle rootstrap.conf
 [global]
 # Initial size of the filesystem image (in MBs). It will be created
@@ -191,15 +212,15 @@ initialsize=1024
 fstype=ext2
 # add the `appot` module to the std list to perform local customization
 modules=network mkfs mount debian uml apppot umount
-# rootstraps' defaults are too low for installing squeeze
+# rootstraps' defaults are too low for installing Debian squeeze
 umlargs= mem=256M
 #+end_src
 
 Network settings in rootstrap only apply to the initial image setup;
 however, having production settings here saves us from changing them
-later on.  We use the `slirp-fullbolt` program to provide access through
-the user's networking capabilities on the host; we assume that
-`slirp`'s default network 10.0.2.x does not conflict with local IP
+later on.  We use the =slirp-fullbolt= program to provide access through
+the user's networking capabilities on the host; /note that/ we assume that
+=slirp='s default network 10.0.2.x does not conflict with local IP
 installations. 
 #+begin_src sh :tangle rootstrap.conf
 [network]
@@ -216,8 +237,10 @@ netmask=255.255.0.0
 slirp=slirp-fullbolt
 #+end_src
 
-Debian's testing distribution provides a good compromise of stability
-and up-to-date packages.  
+Currently we build the AppPot system image based on Debian's `squeeze`
+distribution, which was recently released as `stable`.
+Alternatively, Debian's `testing` distribution provides a good
+compromise of stability and up-to-date packages.
 #+begin_src sh :tangle rootstrap.conf
 [debian]
 dist=squeeze
@@ -228,12 +251,12 @@ mirror=http://mirror.switch.ch/ftp/mirror/debian/
 # NOTE: you can provide multiple lines if each new line is indented
 # with blank spaces
 sources=
-  deb http://security.debian.org/ testing/updates main contrib non-free
-  deb http://mirror.switch.ch/ftp/mirror/debian/ testing main contrib non-free
+  deb http://security.debian.org/ squeeze/updates main contrib non-free
+  deb http://mirror.switch.ch/ftp/mirror/debian/ squeeze main contrib non-free
 
 #+end_src
 
-The default system-wide `/etc/rootstrap/rootstrap.conf` excludes
+The default system-wide =/etc/rootstrap/rootstrap.conf= excludes
 packages `pcmcia-cs` and `setserial` from the start, but this makes
 the installation fail.  Let us override this here: we'll remove unused
 packages later on.
@@ -244,7 +267,7 @@ exclude=
 
 #+end_src
 
-After the base system is installed, `rootstrap` invokes `apt-get` to
+After the base system is installed, =rootstrap= invokes =apt-get= to
 remove and then install packages as specified in the following
 configuration lines.  Note that we just install the package `apppot`:
 its dependencies control what really gets installed (but this allows
@@ -258,27 +281,29 @@ install=makedev bash screen
 
 #+end_src
 
-Image customization is performed by a custom `apppot` module, which is
-run from `rootstrap`.  According to [[man:rootstrap][rootstrap(1)]]:
+*** AppPot image customization
+
+Image customization is performed by a custom =apppot= module, which is
+run from =rootstrap=.  According to [[man:rootstrap][rootstrap(1)]]:
 
   When a module is invoked, the filesystem being created is mounted on
-  $TARGET, `/dev`, `/etc` and `/tmp` are tmpfs filesystems internal to
-  the UML system, while the root filesystem is a hostfs mount of the
+  $TARGET, =/dev=, =/etc= and =/tmp= are tmpfs filesystems internal to
+  the UMLx system, while the root filesystem is a hostfs mount of the
   system where rootstrap is running, to have access to the above
   shadowed directories the full host filesystem is available on
-  $HOST. `/lib/modules` is tmpfs too and bind mounted to the host's
-  `/usr/lib/uml/modules` to let scripts load necessary kernel modules.
+  $HOST. =/lib/modules= is tmpfs too and bind mounted to the host's
+  =/usr/lib/uml/modules= to let scripts load necessary kernel modules.
   This means that most software on the host system should be available
   and work as expected.  The working directory where rootstrap is run
   is available as $WORKDIR. The environment is generated from the
   configuration file as described above.
 
-Local modules should be placed in the `modules/` directory and
+Local modules should be placed in the =modules/= directory and
 implement the following interface
 
-The following actions are performed by the `apppot` module:
+The following actions are performed by the =apppot= module:
 
-*** Reset the `root` password to a known standard value
+**** Reset the `root` password to a known standard value
 
 Since there are no security concerns, we can just use a passwordless
 root account:
@@ -287,7 +312,24 @@ root account:
 chroot $TARGET passwd -d root
 #+end_src
 
-*** Modify `/etc/inittab` so that a root shell is started on the system console
+**** Install additional packages
+
+/TODO:/ move this into dependencies of the `apppot` Debian package?
+
+This is made trivial with `apt-get` and `aptitude`:
+#+begin_src sh :export code :file modules/apppot :tangle modules/apppot
+# install additional packages
+chroot $TARGET aptitude -y install \
+  lsb-base lsb-release \
+  bash jed less screen sudo \
+  subversion git-core \
+  autoconf automake libtool make \
+  gcc-4.4 g++-4.4 libc6-dev libstdc++6-4.4-dev \
+  ;
+  
+#+end_src
+
+**** Modify `/etc/inittab` so that a root shell is started on the system console
 
 #+begin_src sh :tangle modules/apppot
 cat >> $TARGET/etc/inittab <<__EOF__
@@ -299,35 +341,22 @@ sed -i -e 's|^\([1-6]\):|#\1:|' /etc/inittab
 #+end_src
 
 
-*** Install additional packages
 
-This is made trivial with `apt-get` and `aptitude`:
-#+begin_src sh :export code :file modules/apppot :tangle modules/apppot
-# install additional packages
-chroot $TARGET aptitude -y install \
-  bash jed less screen sudo subversion git-core \
-  autoconf automake libtool make \
-  gcc-4.4 g++-4.4 libc6-dev libstdc++6-4.4-dev \
-  ;
-  
-#+end_src
-
-
-** The `apppot` Debian package
+** The =apppot= Debian package
 
 Customization of the AppPot system image is done automatically by
-installing a single Debian package `apppot`.  Since the package is
+installing a single Debian package =apppot=.  Since the package is
 versioned, one has a simple way to check what exact features are
 provided by a certain AppPot image by looking at the version number.
-In addition, existing images can be upgraded by upgrading the `apppot`
+In addition, existing images can be upgraded by upgrading the =apppot=
 package.
 
-The `apppot` package is a regular Debian package; it depends on all
+The =apppot= package is a regular Debian package; it depends on all
 extra packages (i.e., not in the Debian base system) that AppPot
 includes, and replaces some configuration files with customized
 versions.
 
-The `apppot` package is described by the single file
+The =apppot= package is described by the single file
 `debian/packages`, which follows the format required by the [[http://yada.alioth.debian.org/][Yada]] tool.
 
 #+begin_src sh :tangle debian/packages
@@ -342,8 +371,8 @@ Maintainer: Riccardo Murri <riccardo.murri@gmail.com>
 Packaged-For: Grid Computing Competence Center, 
   University of Zurich
 Standards-Version: 3.7.2
-Upstream-Source: ftp://some.where/over/the/rainbow.tar.gz
-Homepage: http://ocikbapps.uzh.ch/wiki/gc3/apppot
+Upstream-Source: http://apppot.googlecode.com/svn/trunk/
+Homepage: http://apppot.googlecode.com/
 Description: AppPot customizations
  This package installs the customizations that make a standard Debian
  GNU/Linux image into an AppPot image.
@@ -359,8 +388,8 @@ Clean: sh
 Package: apppot
 Architecture: any
 Depends: autoconf, automake, bash, g++-4.4, gcc-4.4, git-core, 
-  jed, less, libc6-dev, libstdc++6-4.4-dev, libtool, make, screen, 
-  subversion, sudo
+  jed, less, libc6-dev, libstdc++6-4.4-dev, libtool, lsb-base (>= 3.0-6),
+  make, screen, subversion, sudo
 Description:  AppPot customizations
  This package installs the customizations that make a standard Debian
  GNU/Linux image into an AppPot image.
@@ -374,22 +403,22 @@ Init: sh
 
 #+end_src
 
-** Creating a minimal UML kernel
-** Creating a statically-linked `slirp` binary.
-* Set-up for running computational jobs
+** TODO Creating a minimal UMLx kernel
+** TODO Creating a statically-linked =slirp= binary.
+* TODO Set-up for running computational jobs
 ** Command-line usage of UML
 
 ** Generating the job tarball
 ** Wrapper script for job execution
 ** End-user submission script
-* Example submission: the "Rheinfall" gaussian elimination code.
-** Installation of sources in the AppPot image
-** Compilation & local testing
-** Executing a test run
+* TODO Example submission: the "Rheinfall" gaussian elimination code.
+** TODO Installation of sources in the AppPot image
+** TODO Compilation & local testing
+** TODO Executing a test run
 
 * Copyright and license
 
-Copyright (c) 2011 University of Zurich. All rights reserved.
+Copyright (c) 2011 GC3, University of Zurich. All rights reserved.
 
 This document and the code in it are available under the GNU General
 Public License version 3, or (at your option) any later version.
@@ -398,4 +427,4 @@ Public License version 3, or (at your option) any later version.
 # Local variables:
 #    mode: org
 # End:
-# LocalWords:  AppPot UML virtualization userspace middleware filesystem linux virtualized journaling
+# LocalWords:  AppPot UMLx virtualization userspace middleware filesystem linux virtualized journaling
