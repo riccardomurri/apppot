@@ -88,49 +88,105 @@ require_command $linux
 require_command $slirp
 
 require_command id
-require_command kill
-require_command mkfifo
-require_command sleep
 
-
-# UMLx cannot use stdin for console input if it is connected to a file
-# or other no-wait stream (e.g., /dev/null); in order to make sure
-# that this startup script can run with STDIN connected to any stream,
-# we use the following trick: 
-#   - create a named FIFO
-#   - connect a process that reads from STDIN and writes to the FIFO ('cat'),
-#     then waits indefinitely; the initial sleep is to ensure that data is
-#     not written to the FIFO while the UMLx machine is still booting.
-#   - connect the UMLx instance to the read end of the FIFO, and use STDIN/STDOUT
-#     for the system console
-#
-mkfifo .apppot.stdin \
-    || die 1 "Cannot create FIFO '`pwd`/.apppot.stdin'"
-(sleep ${boot_delay:-10}; cat; sleep 365d) > .apppot.stdin &
-stdin_pid=$!
-
-# ensure the FIFO is removed and the `sleep` process is killed
-cleanup () {
-    kill $stdin_pid
-    rm -f .apppot.stdin
-}
-trap "cleanup" EXIT
 
 # gather environmental information
 APPPOT_UID=`id -u`
 APPPOT_GID=`id -g`
 
-# start UMLx
-$linux \
-    mem="$mem" \
-    hostfs=`pwd` \
-    ubd0="$apppot" \
-    eth0=slirp,,"$slirp" \
-    eth1=mcast,,239.255.82.77,8277,1 \
-    con=null con0=fd:0,fd:1 \
-    root=/dev/ubda \
-    apppot.uid=$APPPOT_UID \
-    apppot.gid=$APPPOT_GID \
-    apppot.jobdir=`pwd` \
-    -- \
-    "$@" < .apppot.stdin
+
+# UMLx cannot use stdin for console input if it is connected to a file
+# or other no-wait stream (e.g., /dev/null); in order to make sure
+# that this startup script can run with STDIN connected to any stream,
+if test - t 0; then 
+    # STDIN is a terminal, start UMLx as usual
+    $linux \
+        mem="$mem" \
+        hostfs=`pwd` \
+        ubd0="$apppot" \
+        eth0=slirp,,"$slirp" \
+        eth1=mcast,,239.255.82.77,8277,1 \
+        con=null con0=fd:0,fd:1 \
+        root=/dev/ubda \
+        apppot.uid=$APPPOT_UID \
+        apppot.gid=$APPPOT_GID \
+        apppot.jobdir=`pwd` \
+        -- "$@"
+
+# STDIN is not a terminal; what we can do now depends on the
+# availability of the `empty` helper command.
+#
+# See http://empty.sourceforge.net/ or install Debian/Ubuntu package
+# 'empty-expect'.
+#
+elif have_command empty; then
+    # start UMLx
+    empty -f -i .apppot.stdin -o .apppot.stdout $linux \
+        mem="$mem" \
+        hostfs=`pwd` \
+        ubd0="$apppot" \
+        eth0=slirp,,"$slirp" \
+        eth1=mcast,,239.255.82.77,8277,1 \
+        con=null con0=fd:0,fd:1 \
+        root=/dev/ubda \
+        apppot.uid=$APPPOT_UID \
+        apppot.gid=$APPPOT_GID \
+        apppot.jobdir=`pwd` \
+        -- "$@"
+    
+    # save STDIN for later use with `empty -s`
+    exec 3<&0
+    
+    # detach from the input stream
+    exec < /dev/null
+    
+    # send original STDIN to the UMLx through the named pipe
+    (empty -s -o .apppot.stdin 0<&3) &
+    
+    # send UMLx console output to STDOUT
+    cat .apppot.stdout
+
+else
+    require_command kill
+    require_command mkfifo
+    require_command sleep
+
+    # No helper programs, we use the following trick: 
+    #   - create a named FIFO
+    #   - connect a process that writes no output to the write end of the FIFO 
+    #   - connect the UMLx instance to the read end of the FIFO,
+    #     and use STDIN/STDOUT for the system console
+    #
+    mkfifo .apppot.stdin \
+        || die 1 "Cannot create FIFO '`pwd`/.apppot.stdin'"
+    (sleep 365d) > .apppot.stdin &
+    stdin_pid=$!
+    
+    # ensure the FIFO is removed and the `sleep` process is killed
+    cleanup () {
+        kill $stdin_pid
+        rm -f .apppot.stdin
+    }
+    trap "cleanup" EXIT
+    
+    # I found no way of conveying arbitrary STDIN content into the
+    # named FIFO; so this trick only works for simulating a null
+    # STDIN, so let's warn users.
+    #
+    echo 1>&2 "$PROG: WARNING: Redirecting output from /dev/null, any content to STDIN will be lost."
+    
+    # start UMLx with input from the FIFO
+    $linux \
+        mem="$mem" \
+        hostfs=`pwd` \
+        ubd0="$apppot" \
+        eth0=slirp,,"$slirp" \
+        eth1=mcast,,239.255.82.77,8277,1 \
+        con=null con0=fd:0,fd:1 \
+        root=/dev/ubda \
+        apppot.uid=$APPPOT_UID \
+        apppot.gid=$APPPOT_GID \
+        apppot.jobdir=`pwd` \
+        -- "$@" \
+        < .apppot.stdin
+fi
