@@ -8,10 +8,19 @@
 # directory '.' in the system root directory.
 #
 ./dev
+./home/user/job
+./lib/init/rw
 ./mnt
 ./proc
+./selinux
 ./sys
 ./tmp
+./var/cache/apt
+./var/cache/man
+./var/cache/ldconfig
+./var/lib/apppot
+./var/lib/apt/lists/partial
+./var/lib/apt/mirrors/partial
 ./var/lock
 ./var/log
 ./var/mail

@@ -243,16 +243,18 @@ Alternatively, Debian's `testing` distribution provides a good
 compromise of stability and up-to-date packages.
 #+begin_src sh :tangle rootstrap.conf
 [debian]
-dist=squeeze
-mirror=http://mirror.switch.ch/ftp/mirror/debian/
+dist=stable
+#mirror=http://mirror.switch.ch/ftp/mirror/debian/
+mirror=http://debian.ethz.ch/debian/
 
 # Sources for target's sources list. If no value is given the default
 # is to use the main section of $mirror
 # NOTE: you can provide multiple lines if each new line is indented
 # with blank spaces
 sources=
-  deb http://security.debian.org/ squeeze/updates main contrib non-free
-  deb http://mirror.switch.ch/ftp/mirror/debian/ squeeze main contrib non-free
+  deb http://security.debian.org/ stable/updates main contrib non-free
+  deb http://debian.ethz.ch/debian stable main contrib non-free
+  #deb http://mirror.switch.ch/ftp/mirror/debian/ stable main contrib non-free
 
 #+end_src
 
@@ -277,7 +279,7 @@ us to override some configuration files as well).
 purge=dmidecode isc-dhcp-client isc-dhcp-common tasksel tasksel-data
   
 # Extra packages to install via apt after initial debootstrap install
-install=makedev bash screen
+install=makedev bash screen libterm-readline-perl-perl
 
 #+end_src
 
@@ -308,7 +310,7 @@ The following actions are performed by the =apppot= module:
 Since there are no security concerns, we can just use a passwordless
 root account:
 #+begin_src sh :tangle modules/apppot :shebang #!/bin/sh
-# remove root password
+## remove root password
 chroot $TARGET passwd -d root
 #+end_src
 
@@ -318,29 +320,80 @@ chroot $TARGET passwd -d root
 
 This is made trivial with `apt-get` and `aptitude`:
 #+begin_src sh :export code :file modules/apppot :tangle modules/apppot
-# install additional packages
-chroot $TARGET aptitude -y install \
+## install additional packages
+
+# install compatibility stuff
+chroot $TARGET apt-get -y install \
   lsb-base lsb-release \
   bash jed less screen sudo \
-  subversion git-core \
+  ;
+
+# install basic development packages
+chroot $TARGET apt-get -y install \
+  build-essential \
   autoconf automake libtool make \
-  gcc-4.4 g++-4.4 libc6-dev libstdc++6-4.4-dev \
+  gcc g++ gfortran libc6-dev libstdc++6-4.4-dev \
+  subversion git-core \
   ;
   
 #+end_src
 
-**** Modify `/etc/inittab` so that a root shell is started on the system console
+**** Disable standard daemons
 
-#+begin_src sh :tangle modules/apppot
-cat >> $TARGET/etc/inittab <<__EOF__
-# spawn a root shell on the system console...
-0:2345:respawn:/usr/bin/screen /bin/bash
-__EOF__
-# ...and comment out the console getty instances
-sed -i -e 's|^\([1-6]\):|#\1:|' /etc/inittab
+The minimal Debian install still leaves two daemons installed and
+working: =rsyslogd= and =cron=.  We keep =rsyslogd= running, as log
+files can help diagnose problems, but we disable cron -- users can
+re-enable it via =sudo update-rc.d cron enable= if they want.
+
+#+begin_src sh
+## disable standard daemons
+chroot $TARGET /usr/sbin/update-rc.d cron disable
 #+end_src
 
+**** Modify `/etc/inittab` to disable multi-user consoles
 
+#+begin_src sh :tangle modules/apppot
+## comment out the console getty instances
+sed -i -e 's|^\([1-6]\):|#\1:|' $TARGET/etc/inittab
+
+## spawn a root shell on the system console
+cat >> $TARGET/etc/inittab <<__EOF__
+# spawn a root shell on the system console...
+0:a:respawn:/usr/bin/screen /bin/bash
+__EOF__
+
+#+end_src
+
+**** Install AppPot support scripts
+
+/TODO:/ Replace with proper script packaging.
+
+#+begin_src sh :export code :file modules/apppot :tangle modules/apppot
+## copy AppPot support scripts to the created filesystem
+
+# install the init script as '/etc/rc.local'; this is always run as
+# the last step of the boot process; on Debian, by default 'rc.local'
+# does nothing, so we can safely overwrite it.
+install -o 0 -g 0 -m 0755 $WORKDIR/apppot-init.sh $TARGET/etc/rc.local
+
+# setup the "snapshot" script
+install -o 0 -g 0 -m 0755 $WORKDIR/apppot-snap.sh $TARGET/usr/bin/apppot-snap
+install -d -o 0 -g 0 -m 0755 $TARGET/var/lib/apppot
+install -o 0 -g 0 -m 0755 $WORKDIR/apppot-snap.exclude $TARGET/var/lib/apppot/apppot-snap.exclude
+#+end_src
+
+**** Record a snapshot of the system
+
+As the very last step, we record a snapshot of the system, i.e., we
+make this into a "base system image".  This allows users to send only
+the changes from the "base system image" when they want to run a job
+on a remote AppPot.
+
+#+begin_src sh :export code :file modules/apppot :tangle modules/apppot
+## tag this as a "base image"
+
+chroot $TARGET /usr/bin/apppot-snap base
+#+end_src 
 
 ** The =apppot= Debian package
 

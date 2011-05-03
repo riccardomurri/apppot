@@ -40,7 +40,7 @@ EOF
 
 ## defaults
 
-base_snap_file='/var/lib/apppot/base.snap'
+base_snap_file='/var/lib/apppot/apppot-snap.base'
 exclude_file='/var/lib/apppot/apppot-snap.exclude'
 
 
@@ -73,7 +73,7 @@ is_absolute_path () {
 maybe=''
 verbose=''
 
-if [ "x$(getopt -T)" == 'x--' ]; then
+if [ "x$(getopt -T)" = 'x--' ]; then
     # old-style getopt, use compatibility syntax
     set -- $(getopt 'hnv' "$@")
 else
@@ -115,7 +115,10 @@ case $action in
         ;;
 
     changes) 
-        archive="${2:-/var/lib/apppot/snapshot.tgz}"
+        archive="${2:-apppot-changes.tgz}"
+        # check that the snapfile exists and can be read
+        test -r "$snapfile" \
+            || die 1 "Base snapshot '$snapfile' does not exist."
         # create a temporary copy of the tar snapfile, as tar modifies
         # it during a `--create` operation
         snapfile=`mktemp` \
@@ -132,7 +135,7 @@ case $action in
         ;;
 
     merge) 
-        archive="${2:-/var/lib/apppot/snapshot.tgz}"
+        archive="${2:-apppot-changes.tgz}"
         $maybe tar $verbose --extract --auto-compress -f "$archive" -C / \
             --same-owner --same-permissions \
             --listed-incremental="$base_snap_file" \
@@ -140,4 +143,9 @@ case $action in
             --exclude="$snapfile" --exclude="$archive" --exclude="$exclude_file" \
             --anchored --wildcards-match-slash
         ;;
+
+    *)
+        die 1 "Unknown action '$action'; type '$PROG --help' for usage help."
+        ;;
+
 esac

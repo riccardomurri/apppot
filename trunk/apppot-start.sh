@@ -94,20 +94,24 @@ require_command id
 APPPOT_UID=`id -u`
 APPPOT_GID=`id -g`
 
+if [ -n "$TERM" ]; then
+    term="TERM=$TERM"
+fi
 
 # UMLx cannot use stdin for console input if it is connected to a file
 # or other no-wait stream (e.g., /dev/null); in order to make sure
 # that this startup script can run with STDIN connected to any stream,
-if test - t 0; then 
+if test -t 0; then 
     # STDIN is a terminal, start UMLx as usual
     $linux \
         mem="$mem" \
-        hostfs=`pwd` \
+        hostfs=/ \
         ubd0="$apppot" \
         eth0=slirp,,"$slirp" \
         eth1=mcast,,239.255.82.77,8277,1 \
-        con=null con0=fd:0,fd:1 \
+        con=fd:0,fd:1 \
         root=/dev/ubda \
+        $term \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
         apppot.jobdir=`pwd` \
@@ -118,17 +122,18 @@ if test - t 0; then
 #
 # See http://empty.sourceforge.net/ or install Debian/Ubuntu package
 # 'empty-expect'.
-#
+#f 
 elif have_command empty; then
     # start UMLx
     empty -f -i .apppot.stdin -o .apppot.stdout $linux \
         mem="$mem" \
-        hostfs=`pwd` \
+        hostfs=/ \
         ubd0="$apppot" \
         eth0=slirp,,"$slirp" \
         eth1=mcast,,239.255.82.77,8277,1 \
-        con=null con0=fd:0,fd:1 \
+        con=fd:0,fd:1 \
         root=/dev/ubda \
+        $term \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
         apppot.jobdir=`pwd` \
@@ -178,12 +183,13 @@ else
     # start UMLx with input from the FIFO
     $linux \
         mem="$mem" \
-        hostfs=`pwd` \
+        hostfs=/ \
         ubd0="$apppot" \
         eth0=slirp,,"$slirp" \
         eth1=mcast,,239.255.82.77,8277,1 \
-        con=null con0=fd:0,fd:1 \
+        con=fd:0,fd:1 \
         root=/dev/ubda \
+        $term \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
         apppot.jobdir=`pwd` \
