@@ -151,17 +151,23 @@ do_start()
     #   2 if daemon could not be started
     process_command_line
     setup_apppot_user
-    mount_hostfs $APPPOT_JOBDIR $APPPOT_HOME/job
-    
-    mount_hostfs $APPPOT_TMPDIR /tmp
-    
+
+    [ -n "$APPPOT_JOBDIR" ] && mount_hostfs $APPPOT_JOBDIR $APPPOT_HOME/job
+    [ -n "$APPPOT_TMPDIR" ] && mount_hostfs $APPPOT_TMPDIR /tmp
+
+    # extract a snapshot, if there is any
+    if [ -r "$APPPOT_HOME/job/apppot-changes.tgz" ]; then
+        apppot-snap.sh merge "$APPPOT_HOME/job/apppot-changes.tgz"
+    fi
+
+    # run a job or start an interactive shell
     if [ $# -eq 0 ]; then
-        if [ -x "$APPPOT_HOME/job/apppot-job.sh" ]; then
+        if [ -x "$APPPOT_HOME/job/apppot-run" ]; then
             # run the job script as the specified user
-            su -l "$APPPOT_USER" -c "$APPPOT_HOME/job/apppot-job.sh"
-        if [ -x "$APPPOT_HOME/apppot-autorun.sh" ]; then
+            su -l "$APPPOT_USER" -c "$APPPOT_HOME/job/apppot-run"
+        if [ -x "$APPPOT_HOME/apppot-autorun" ]; then
             # run the autostart script as the specified user
-            su -l "$APPPOT_USER" -c "$APPPOT_HOME/apppot-autorun.sh"
+            su -l "$APPPOT_USER" -c "$APPPOT_HOME/apppot-autorun"
         else
             start_screen_on_console
         fi
@@ -176,6 +182,7 @@ do_start()
     return 0
 }
 
+
 #
 # Function that stops the daemon/service
 #
@@ -187,7 +194,6 @@ do_stop()
     #   2 if daemon could not be stopped
     #   other if a failure occurred
     halt
-    return $?
 }
 
 
