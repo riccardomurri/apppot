@@ -8,7 +8,7 @@
 #
 # Author: Riccardo Murri <riccardo.murri@gmail.com>
 #
-VERSION=0.13
+VERSION="0.16 (SVN $Revision$)"
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin
@@ -87,6 +87,9 @@ __EOF__
     # give $user access to the system console
     chown "$user" /dev/console
 
+    # ensure that we can still use `screen` if UID/GID has changed from the default
+    rm -rf /var/run/screen/S-$APPPOT_USER /var/run/screen/S-$user
+
     return 0
 }
 
@@ -124,13 +127,13 @@ if [ -r /proc/cmdline ]; then
     set -- `cat /proc/cmdline`
     while [ $# -gt 0 ]; do
         case "$1" in
-            apppot.user=*)   export APPPOT_USER="$(value "$1")" ;;
-            apppot.uid=*)    export APPPOT_UID="$(value "$1")" ;;
-            apppot.group=*)  export APPPOT_GROUP="$(value "$1")" ;;
-            apppot.gid=*)    export APPPOT_GID="$(value "$1")" ;;
-            apppot.jobdir=*) export APPPOT_JOBDIR="$(value "$1")" ;;
-            apppot.tmpdir=*) export APPPOT_TMPDIR="$(value "$1")" ;;
-            TERM=*)          export TERM="$(value "$1")" ;;
+            apppot.user=*)    export APPPOT_USER="$(value "$1")" ;;
+            apppot.uid=*)     export APPPOT_UID="$(value "$1")" ;;
+            apppot.group=*)   export APPPOT_GROUP="$(value "$1")" ;;
+            apppot.gid=*)     export APPPOT_GID="$(value "$1")" ;;
+            apppot.jobdir=*)  export APPPOT_JOBDIR="$(value "$1")" ;;
+            apppot.tmpdir=*)  export APPPOT_TMPDIR="$(value "$1")" ;;
+            TERM=*)           export TERM="$(value "$1")" ;;
         # `--` means end of kernel params and start of job arguments
             --) shift; break ;;
         esac
@@ -152,6 +155,10 @@ if [ -r "$APPPOT_HOME/job/apppot-changes.tgz" ]; then
     echo "== Merging snapshot '$APPPOT_HOME/job/apppot-changes.tgz' ..."
     apppot-snap merge "$APPPOT_HOME/job/apppot-changes.tgz"
 fi
+
+# now set arguments according to the kernel command-line (and remove
+# quotes that apppot-start.sh put there)
+eval set -- "$@"
 
 # run a job or start an interactive shell
 if [ $# -eq 0 ]; then
