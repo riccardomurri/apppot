@@ -1,6 +1,7 @@
 #! /bin/sh
 #
 PROG="$(basename $0)"
+VERSION="0.16 (SVN $Revision$)"
 
 usage () {
 cat <<EOF
@@ -46,6 +47,10 @@ die () {
 
 have_command () {
   type "$1" >/dev/null 2>/dev/null
+}
+
+quote () {
+    echo "$1" | sed -e 's|\\|\\\\|g;s|"|\\"|g;'
 }
 
 require_command () {
@@ -98,6 +103,12 @@ if [ -n "$TERM" ]; then
     term="TERM=$TERM"
 fi
 
+# prepare command-line invocation
+cmdline=''
+for arg in "$@"; do
+    cmdline="$cmdline '$(quote $arg)'"
+done
+
 # UMLx cannot use stdin for console input if it is connected to a file
 # or other no-wait stream (e.g., /dev/null); in order to make sure
 # that this startup script can run with STDIN connected to any stream,
@@ -115,7 +126,7 @@ if test -t 0; then
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
         apppot.jobdir=`pwd` \
-        -- "$@"
+        -- "$cmdline"
 
 # STDIN is not a terminal; what we can do now depends on the
 # availability of the `empty` helper command.
@@ -137,7 +148,7 @@ elif have_command empty; then
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
         apppot.jobdir=`pwd` \
-        -- "$@"
+        -- "$cmdline"
     
     # save STDIN for later use with `empty -s`
     exec 3<&0
@@ -193,6 +204,6 @@ else
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
         apppot.jobdir=`pwd` \
-        -- "$@" \
+        -- "$cmdline" \
         < .apppot.stdin
 fi
