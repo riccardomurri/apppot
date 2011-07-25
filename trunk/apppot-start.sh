@@ -45,6 +45,11 @@ die () {
   exit $rc
 }
 
+warn () {
+  (echo -n "$PROG: WARNING: ";
+      if [ $# -gt 0 ]; then echo "$@"; else cat; fi) 1>&2
+}
+
 have_command () {
   type "$1" >/dev/null 2>/dev/null
 }
@@ -69,18 +74,38 @@ is_absolute_path () {
 # defaults
 apppot="apppot.img"
 mem="512M"
-slirp="`pwd`/slirp"
-linux="linux"
 
+# try to provide sensible defaults
+if [ -x "`pwd`/slirp" ]; then
+    slirp="`pwd`/slirp"
+elif have_command slirp-fullbolt; then
+    slirp='slirp-fullbolt'
+elif have_command slirp; then
+    slirp='slirp'
+else
+    slirp=''
+fi
+
+if [ -x "`pwd`/linux" ]; then
+    linux="`pwd`/linux"
+elif have_command linux; then
+    linux="linux"
+else
+    linux=''
+fi
+
+# parse command line
 while [ $# -gt 0 ]; do
     case "$1" in
         --apppot) shift; apppot="$1" ;;
+        --id) shift; umid="$1" ;;
         --mem) shift; mem="$1" ;;
         --slirp) shift; slirp="$1" ;;
-        --uml|--linux) shift; linux="$1" ;;
+        --uml|--linux|--kernel) shift; linux="$1" ;;
         --help|-h) usage; exit 0 ;;
         --*) die 1 "Unknown option '$1'; type '$PROG --help' to see usage help." ;;
         --) shift; break ;;
+        # parsing stops at the first non-option argument
         *) break ;;
     esac
     shift
@@ -89,13 +114,40 @@ done
 
 ## main
 
-require_command $linux
-require_command $slirp
+if ! [ -r "$apppot" ]; then 
+    die 1 "Cannot read AppPot image file '$apppot' - aborting."
+fi
 
-require_command id
+if [ -z "$linux" ]; then
+    die 1 "No 'linux' executable detected, please specify the UML kernel via the '--uml' option."
+else
+    require_command $linux
+fi
+
+if [ -z "$slirp" ]; then
+    warn "No 'slirp' or 'slirp-fullbolt' executable detected, disabling network access."
+else
+    require_command $slirp
+    opt_slirp="eth0=slirp,,$slirp"
+fi
+
+if [ -z "$umid" ]; then
+    if have_command uuidgen; then
+        umid=apppot."$(uuidgen | tr -d '-')"
+    elif have_command od && [ -r /dev/urandom ]; then
+        umid=apppot."$(od -N 16 -t x2 /dev/urandom  | cut -c8- | tr -d ' ')"
+    elif have_command md5sum; then
+        # fall back to some pseudo-random thing;
+        # see: http://linuxgazette.net/issue55/tag/4.html
+        umid=apppot."$( (echo $$; date) | md5sum | cut -d' ' -f1 )"
+    else
+        die 1 "No 'md5sum' or 'uuidgen' executable detected: cannot generate a random ID for the AppPot instance.  Please specify one with the '--id' command-line option."
+    fi
+fi
 
 
 # gather environmental information
+require_command id
 APPPOT_UID=`id -u`
 APPPOT_GID=`id -g`
 
@@ -115,10 +167,12 @@ done
 if test -t 0; then 
     # STDIN is a terminal, start UMLx as usual
     $linux \
+        umid="$umid" \
+        highres=off \
         mem="$mem" \
         hostfs=/ \
         ubd0="$apppot" \
-        eth0=slirp,,"$slirp" \
+        "$opt_slirp" \
         eth1=mcast,,239.255.82.77,8277,1 \
         con=fd:0,fd:1 \
         root=/dev/ubda \
@@ -137,10 +191,11 @@ if test -t 0; then
 elif have_command empty; then
     # start UMLx
     empty -f -i .apppot.stdin -o .apppot.stdout $linux \
+        umid="$umid" \
         mem="$mem" \
         hostfs=/ \
         ubd0="$apppot" \
-        eth0=slirp,,"$slirp" \
+        "$opt_slirp" \
         eth1=mcast,,239.255.82.77,8277,1 \
         con=fd:0,fd:1 \
         root=/dev/ubda \
@@ -193,10 +248,11 @@ else
     
     # start UMLx with input from the FIFO
     $linux \
+        umid="$umid" \
         mem="$mem" \
         hostfs=/ \
         ubd0="$apppot" \
-        eth0=slirp,,"$slirp" \
+        "$opt_slirp" \
         eth1=mcast,,239.255.82.77,8277,1 \
         con=fd:0,fd:1 \
         root=/dev/ubda \
