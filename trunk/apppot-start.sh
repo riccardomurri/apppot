@@ -18,6 +18,8 @@ port 8277.
 The following options are recognized; option processing stops at the
 first non-option argument (which must be PROG):
 
+  --apppot PATH  Use the specified AppPot system image.
+
   --mem NUM      Amount of memory to allocate to the
                  AppPot system image; use the 'M' or 'G'
                  suffix to denote MB or GB respectively.
@@ -26,9 +28,10 @@ first non-option argument (which must be PROG):
                  the 'slirp' command for providing
                  IP network access.
 
-  --apppot PATH  Use the specified AppPot system image.
-
   --uml PATH     Use the UML 'linux' executable found at PATH.
+
+  --id NAME      Use NAME to control the running instance 
+                 with 'uml_mconsole'.
 
   --help, -h     Print this help text.
 
@@ -132,17 +135,7 @@ else
 fi
 
 if [ -z "$umid" ]; then
-    if have_command uuidgen; then
-        umid=apppot."$(uuidgen | tr -d '-')"
-    elif have_command od && [ -r /dev/urandom ]; then
-        umid=apppot."$(od -N 16 -t x2 /dev/urandom  | cut -c8- | tr -d ' ')"
-    elif have_command md5sum; then
-        # fall back to some pseudo-random thing;
-        # see: http://linuxgazette.net/issue55/tag/4.html
-        umid=apppot."$( (echo $$; date) | md5sum | cut -d' ' -f1 )"
-    else
-        die 1 "No 'md5sum' or 'uuidgen' executable detected: cannot generate a random ID for the AppPot instance.  Please specify one with the '--id' command-line option."
-    fi
+    umid=apppot."$(hostname).$$"
 fi
 
 
