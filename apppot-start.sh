@@ -19,6 +19,9 @@ The following options are recognized; option processing stops at the
 first non-option argument (which must be PROG):
 
   --apppot PATH  Use the specified AppPot system image.
+                 You can also specify a pair COWFILE:IMAGEFILE,
+                 in which case IMAGEFILE will be opened read-only
+                 and all changes will be written to COWFILE instead.
 
   --mem NUM      Amount of memory to allocate to the
                  AppPot system image; use the 'M' or 'G'
@@ -117,8 +120,30 @@ done
 
 ## main
 
-if ! [ -r "$apppot" ]; then 
-    die 1 "Cannot read AppPot image file '$apppot' - aborting."
+# parse the `--apppot` argument and check for existence of the backing file
+case "$apppot" in
+    # UMLx allows both `ubdX=cow,back` and `ubdX=cow:back`
+    *,*)
+        apppot_cow="$(echo "$apppot" | cut -d, -f1)"
+        apppot_img="$(echo "$apppot" | cut -d, -f2)"
+        ;;
+    *:*)
+        apppot_cow="$(echo "$apppot" | cut -d: -f1)"
+        apppot_img="$(echo "$apppot" | cut -d: -f2)"
+        ;;
+    # else there's a single file, which is opened R/W
+    *)
+        apppot_cow=''
+        apppot_img="$apppot"
+        ;;
+esac
+if ! [ -r "$apppot_img" ]; then 
+    die 1 "Cannot read AppPot image file '$apppot_img' - aborting."
+    if [ -z "$apppot_cow" ] && [ ! -w "$apppot_img" ]; then
+        apppot_cow="apppot.$(hostname).$$.cow"
+        warn "AppPot image file '$apppot_img' is read-only: writing changes to COW file '$appot_cow'."
+        apppot="$apppot_cow:$apppot_img"
+    fi
 fi
 
 if [ -z "$linux" ]; then
