@@ -151,9 +151,9 @@ setup_apppot_user \
 [ -n "$APPPOT_TMPDIR" ] && mount_hostfs $APPPOT_TMPDIR /tmp
 
 # extract a snapshot, if there is any
-if [ -r "$APPPOT_HOME/job/apppot-changes.tgz" ]; then
-    echo "== Merging snapshot '$APPPOT_HOME/job/apppot-changes.tgz' ..."
-    apppot-snap merge "$APPPOT_HOME/job/apppot-changes.tgz"
+if [ -r "$APPPOT_HOME/job/apppot-changes.tar.gz" ]; then
+    echo "== Merging snapshot '$APPPOT_HOME/job/apppot-changes.tar.gz' ..."
+    apppot-snap merge "$APPPOT_HOME/job/apppot-changes.tar.gz"
 fi
 
 # now set arguments according to the kernel command-line (and remove
