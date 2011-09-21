@@ -1,0 +1,103 @@
+\ProvidesPackage{beamerthemeegi}
+% Adapted from EGEE3 theme
+% by David O'Callaghan <david.ocallaghan@cs.tcd.ie>, 2011
+\usepackage{helvet}
+\mode<presentation>
+
+\newdimen\head@height
+\head@height=42pt
+
+\definecolor{egiblue}{RGB}{0,103,177}
+\definecolor{egiorange}{RGB}{200,113,0}
+\definecolor{egiblack}{RGB}{0,0,0}
+\definecolor{egigrey30}{RGB}{76,76,76}
+\definecolor{egigrey50}{RGB}{128,128,128}
+\definecolor{egigrey60}{RGB}{153,153,153}
+\definecolor{egigrey70}{RGB}{179,179,179}
+\setbeamercolor{section in head}{fg=white,bg=egiblue}
+\setbeamercolor{egi in head}{fg=white,bg=egiblue}
+\setbeamercolor{date in foot}{fg=white,bg=egiblue}
+
+\setbeamertemplate{navigation symbols}{}
+
+\newdimen\heightL
+\heightL=\head@height
+\advance\heightL-1pt
+\newbox\logobox
+\setbox\logobox\hbox{\raise0.3pt\hbox{\includegraphics[height=\head@height]{EGI_Logo.png}}%
+\hskip-1pt\includegraphics[height=\head@height]{CurveOnWhite.png}}
+
+\defbeamertemplate*{headline}{egi theme}{\hrule height0pt depth0pt}
+
+\defbeamertemplate*{frametitle}{egi theme}
+{
+    \nointerlineskip
+        \baselineskip=0pt
+        \lineskip=0pt
+        \parsep=0pt
+        \begin{beamercolorbox}[wd=\paperwidth,ht=\head@height,dp=3pt]{section in head}
+        \copy\logobox
+        \raise12pt\hbox{\insertframetitle}
+        \end{beamercolorbox}
+}
+
+\defbeamertemplate*{footline}{egi theme}
+{
+    \leavevmode
+    \begin{beamercolorbox}[wd=\paperwidth,ht=3ex,dp=1ex]{date in foot}
+      \space\space
+      {\tiny\insertshorttitle \space\space \insertdate}
+      \hfill 
+      EGI-InSPIRE RI-261323 \space/\space www.egi.eu
+    \end{beamercolorbox}
+}
+
+\setbeamercolor{normal text}{fg=egiblack}
+
+\setbeamercolor{alerted text}{fg=egiorange!90!black}
+\setbeamerfont{alerted text}{series=\bfseries}
+
+\setbeamertemplate{itemize item}{{\color{egiorange}$\bullet$}}
+\setbeamertemplate{itemize subitem}{{\color{egiorange}$\bullet$}}
+\setbeamertemplate{itemize subsubitem}{{\color{egiorange}$\bullet$}}
+
+\setbeamertemplate{title page}{
+    \lineskip=0pt
+    % Header
+    \begin{beamercolorbox}[wd=\paperwidth,ht=\head@height,dp=3pt]{section in head}
+    \copy\logobox
+            \hfill\raise4pt\hbox{\textbf{\LARGE EGI-InSPIRE\ }}
+    \end{beamercolorbox}
+    % Sidebar
+    \vbox to \head@height{
+        \hskip-30pt \hbox{\includegraphics[width=60pt]{Sidebar.jpg}}
+        \vss
+    }%
+    % Title Text
+    \vskip -2em%
+    \hskip60pt\vbox to 120pt{
+        \advance\hsize-60pt
+        \begin{center}
+            {\Large\inserttitle\par}
+            \bigskip
+            {\large\insertauthor\par}
+            \bigskip
+            {\insertinstitute\par}
+        \end{center}
+        \vfill
+    }
+
+    % Logos
+    %\advance\hsize\beamer@rightmargin
+    \vfill
+    \vskip 3em%
+    %\hskip-\beamer@leftmargin
+    %\hbox to 6ex{\hfil}
+    \hfill \hbox{
+        \includegraphics[width=30pt]{FP7.png}
+    \ 
+        \includegraphics[width=60pt]{e-infrastructure.png}
+    \ 
+        \includegraphics[width=36pt]{EU.png}
+    }
+}
