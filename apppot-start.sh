@@ -1,7 +1,7 @@
 #! /bin/sh
 #
 PROG="$(basename $0)"
-VERSION="0.16 (SVN $Revision$)"
+VERSION="0.17 (SVN $Revision$)"
 
 usage () {
 cat <<EOF
@@ -164,6 +164,31 @@ if [ -z "$umid" ]; then
 fi
 
 
+# determine whether $apppot is a filesystem or disk image, 
+# and generate a `root=...` kernel parameter
+# XXX: complicated heuristics, may file unpredictably
+require_command expr
+require_command file
+what=$(file -b "$apppot_img")
+case "$what" in
+    'x86 boot sector'*)
+        # disk image, determine boot partition
+        bootpart=$(/usr/bin/expr match "$what" '.*partition \([1-4]\): D=0x83, active')
+        if [ -n "$bootpart" ]; then
+            rootfs="/dev/ubda$bootpart"
+        else
+            warn "Disk image '$apppot_img' contains no bootable partition, assuming Linux is on partition 1."
+            rootfs="/dev/ubda1"
+        fi
+        ;;
+    *'filesystem data'*)
+        # filesystem image
+        rootfs=/dev/ubda
+        ;;
+esac
+            
+
+
 # gather environmental information
 require_command id
 APPPOT_UID=`id -u`
@@ -193,7 +218,7 @@ if test -t 0; then
         "$opt_slirp" \
         eth1=mcast,,239.255.82.77,8277,1 \
         con=fd:0,fd:1 \
-        root=/dev/ubda \
+        root="$rootfs" \
         $term \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
@@ -216,7 +241,7 @@ elif have_command empty; then
         "$opt_slirp" \
         eth1=mcast,,239.255.82.77,8277,1 \
         con=fd:0,fd:1 \
-        root=/dev/ubda \
+        root="$rootfs" \
         $term \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
@@ -273,7 +298,7 @@ else
         "$opt_slirp" \
         eth1=mcast,,239.255.82.77,8277,1 \
         con=fd:0,fd:1 \
-        root=/dev/ubda \
+        root="$rootfs" \
         $term \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
