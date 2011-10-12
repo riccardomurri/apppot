@@ -8,6 +8,10 @@
 # directory '.' in the system root directory.
 #
 ./dev
+./etc/network/run/ifstate
+./home/user/.aptitude/cache
+./home/user/.bash_history
+./home/user/.lesshst
 ./home/user/job
 ./lib/init/rw
 ./mnt
@@ -16,11 +20,12 @@
 ./sys
 ./tmp
 ./var/cache/apt
-./var/cache/man
 ./var/cache/ldconfig
+./var/cache/man
 ./var/lib/apppot
 ./var/lib/apt/lists/partial
 ./var/lib/apt/mirrors/partial
+./var/lib/urandom/random-seed
 ./var/lock
 ./var/log
 ./var/mail
