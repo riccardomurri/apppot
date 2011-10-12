@@ -1,7 +1,7 @@
 #! /bin/sh
 #
 PROG="$(basename $0)"
-VERSION="0.17 (SVN $Revision$)"
+VERSION="0.18 (SVN $Revision$)"
 
 usage () {
 cat <<EOF
@@ -153,12 +153,13 @@ case "$apppot" in
 esac
 if ! [ -r "$apppot_img" ]; then 
     die 1 "Cannot read AppPot image file '$apppot_img' - aborting."
-    if [ -z "$apppot_cow" ] && [ ! -w "$apppot_img" ]; then
-        apppot_cow="apppot.$(hostname).$$.cow"
-        warn "AppPot image file '$apppot_img' is read-only: writing changes to COW file '$appot_cow'."
-        apppot="$apppot_cow:$apppot_img"
-    fi
 fi
+if [ -z "$apppot_cow" ] && [ ! -w "$apppot_img" ]; then
+    apppot_cow="apppot.$(hostname).$$.cow"
+    warn "AppPot image file '$apppot_img' is read-only: writing changes to COW file '$appot_cow'."
+    apppot="$apppot_cow:$apppot_img"
+fi
+
 
 if [ -z "$linux" ]; then
     die 1 "No 'linux' executable detected, please specify the UML kernel via the '--uml' option."
