@@ -8,7 +8,7 @@
 #
 # Author: Riccardo Murri <riccardo.murri@gmail.com>
 #
-VERSION="0.16 (SVN $Revision$)"
+VERSION="0.17 (SVN $Revision$)"
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin
@@ -176,8 +176,14 @@ if [ $# -eq 0 ]; then
     fi
 else
     # execute command-line
-    echo "== Running command-line '$@' ..."
-    eval su -l "$APPPOT_USER" -c \'"$@"\'
+    echo "== Running command-line \"$@\" ..."
+    if mountpoint -q "$APPPOT_HOME/job"; then
+        # if /home/user/job is mounted, execute job in it
+        eval su -l "$APPPOT_USER" -c "'cd $APPPOT_HOME/job; $@'"
+    else
+        # otherwise, execute in $HOME directory
+        eval su -l "$APPPOT_USER" -c "'cd $APPPOT_HOME; $@'"
+    fi
 fi
 
 echo "==== AppPot done, commencing shutdown ..."
