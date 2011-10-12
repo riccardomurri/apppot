@@ -1,7 +1,7 @@
 #! /bin/sh
 #
 PROG="$(basename $0)"
-VERSION=0.2
+VERSION=0.3
 
 usage () {
 cat <<EOF
@@ -73,6 +73,15 @@ is_absolute_path () {
     expr match "$1" '/' >/dev/null 2>/dev/null
 }
 
+home_directory () {
+    # if we're running under `sudo`, we want to use the real user's
+    # $HOME, not `root`'s one...
+    if [ -n "$SUDO_USER" ]; then
+        echo $(getent passwd "$SUDO_USER" | cut -d: -f6)
+    else
+        echo $HOME
+    fi
+}
 
 ## parse command-line 
 
@@ -112,13 +121,16 @@ if ! [ -r "$exclude_file" ]; then
     die 1 "Exclude file '$exclude_file' cannot be read."
 fi
 
+default_archive () {
 # let the default archive location be what the init script expects
-if mountpoint -q "$HOME/job"; then
-    default_archive="$HOME/job/apppot-changes.tar.gz"
-else
-    default_archive="apppot-changes.tar.gz"
-    warn "Default archive location '$HOME/job' does not look like a hostfs mount, storing changes into '$default_archive' instead."
-fi
+    home="$(home_directory)"
+    if mountpoint -q "$home/job"; then
+        echo "$home/job/apppot-changes.tar.gz"
+    else
+        echo "apppot-changes.tar.gz"
+        warn "Default archive location '$home/job' does not look like a hostfs mount, storing changes into '$default_archive' instead."
+    fi
+}
 
 case $action in
 
@@ -134,7 +146,7 @@ case $action in
         ;;
 
     changes) 
-        archive="${2:-$default_archive}"
+        archive="${2:-$(default_archive)}"
         # check that the snapfile exists and can be read
         test -r "$base_state_file" \
             || die 1 "Base state file '$base_state_file' does not exist."
@@ -155,7 +167,7 @@ case $action in
         ;;
 
     merge) 
-        archive="${2:-$default_archive}"
+        archive="${2:-$(default_archive)}"
         $maybe tar $verbose --extract --auto-compress -f "$archive" -C / \
             --same-owner --same-permissions \
             --listed-incremental="$base_state_file" \
