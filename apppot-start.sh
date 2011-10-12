@@ -60,6 +60,10 @@ have_command () {
   type "$1" >/dev/null 2>/dev/null
 }
 
+link_target () {
+  find "$1" -printf '%l'
+}
+
 quote () {
     echo "$1" | sed -e 's|\\|\\\\|g;s|"|\\"|g;'
 }
@@ -70,6 +74,10 @@ require_command () {
   fi
 }
 
+stdin_is_not_dev_null () {
+  test "$(link_target /proc/self/fd/0)" != '/dev/null'
+}
+
 is_absolute_path () {
     expr match "$1" '/' >/dev/null 2>/dev/null
 }
@@ -78,7 +86,11 @@ is_absolute_path () {
 ## parse command-line 
 
 # defaults
-apppot="apppot.img"
+if [ -n "$APPPOT_IMAGE" ]; then
+    apppot="$APPPOT_IMAGE"
+else
+    apppot="apppot.img"
+fi
 mem="512M"
 
 # try to provide sensible defaults
@@ -94,6 +106,8 @@ fi
 
 if [ -x "`pwd`/linux" ]; then
     linux="`pwd`/linux"
+elif [ -n "$APPPOT_KERNEL" ]; then
+    linux="$APPPOT_KERNEL"
 elif have_command linux; then
     linux="linux"
 else
@@ -230,8 +244,15 @@ if test -t 0; then
 #
 # See http://empty.sourceforge.net/ or install Debian/Ubuntu package
 # 'empty-expect'.
-#f 
-elif have_command empty; then
+#
+
+elif have_command empty && stdin_is_not_dev_null; then
+    # save STDIN for later use with `empty -s`
+    exec 3<&0
+    
+    # detach from the input stream
+    exec < /dev/null
+    
     # start UMLx
     empty -f -i .apppot.stdin -o .apppot.stdout $linux \
         umid="$umid" \
@@ -248,14 +269,8 @@ elif have_command empty; then
         apppot.jobdir=`pwd` \
         -- "$cmdline"
     
-    # save STDIN for later use with `empty -s`
-    exec 3<&0
-    
-    # detach from the input stream
-    exec < /dev/null
-    
     # send original STDIN to the UMLx through the named pipe
-    (empty -s -o .apppot.stdin 0<&3) &
+    (empty -s -o .apppot.stdin -c 0<&3) &
     
     # send UMLx console output to STDOUT
     cat .apppot.stdout
@@ -287,7 +302,9 @@ else
     # named FIFO; so this trick only works for simulating a null
     # STDIN, so let's warn users.
     #
-    echo 1>&2 "$PROG: WARNING: Redirecting output from /dev/null, any content to STDIN will be lost."
+    if stdin_is_not_dev_null; then
+        warn "Redirecting output from /dev/null, any content to STDIN will be lost."
+    fi
     
     # start UMLx with input from the FIFO
     $linux \
