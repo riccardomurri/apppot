@@ -141,11 +141,6 @@ if [ -r /proc/cmdline ]; then
     done
 fi
 
-setup_apppot_user \
-    ${APPPOT_UID:-1000} ${APPPOT_GID:-1000} \
-    ${APPPOT_USER:-user} ${APPPOT_GROUP:-users}
-
-
 # mount job and scratch directories, if present
 [ -n "$APPPOT_JOBDIR" ] && mount_hostfs $APPPOT_JOBDIR $APPPOT_HOME/job
 [ -n "$APPPOT_TMPDIR" ] && mount_hostfs $APPPOT_TMPDIR /tmp
@@ -155,6 +150,13 @@ if [ -r "$APPPOT_HOME/job/apppot-changes.tar.gz" ]; then
     echo "== Merging snapshot '$APPPOT_HOME/job/apppot-changes.tar.gz' ..."
     apppot-snap merge "$APPPOT_HOME/job/apppot-changes.tar.gz"
 fi
+
+# ensure that the UID and GID of the user account are the same of the
+# mounted "job" directory; we need to do this *after* the changes
+# merge because it could have overwritten /etc/passwd
+setup_apppot_user \
+    ${APPPOT_UID:-1000} ${APPPOT_GID:-1000} \
+    ${APPPOT_USER:-user} ${APPPOT_GROUP:-users}
 
 # now set arguments according to the kernel command-line (and remove
 # quotes that apppot-start.sh put there)
