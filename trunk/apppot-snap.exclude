@@ -8,6 +8,8 @@
 # directory '.' in the system root directory.
 #
 ./dev
+./etc/fstab
+./etc/mtab
 ./etc/network/run/ifstate
 ./home/user/.aptitude/cache
 ./home/user/.bash_history
