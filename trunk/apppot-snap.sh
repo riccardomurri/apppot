@@ -1,7 +1,7 @@
 #! /bin/sh
 #
 PROG="$(basename $0)"
-VERSION='0.4 (SVN $Revision$)'
+VERSION='0.20 (SVN $Revision$)'
 
 usage () {
 cat <<EOF

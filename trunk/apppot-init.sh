@@ -8,7 +8,7 @@
 #
 # Author: Riccardo Murri <riccardo.murri@gmail.com>
 #
-VERSION="0.19 (SVN $Revision$)"
+VERSION='0.20 (SVN $Revision$)'
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin
