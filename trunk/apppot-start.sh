@@ -181,7 +181,7 @@ fi
 
 # determine whether $apppot is a filesystem or disk image, 
 # and generate a `root=...` kernel parameter
-# XXX: complicated heuristics, may file unpredictably
+# XXX: complicated heuristics, may fail unpredictably
 require_command expr
 require_command file
 what=$(file -b "$apppot_img")
