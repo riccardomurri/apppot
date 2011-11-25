@@ -8,7 +8,7 @@
 #
 # Author: Riccardo Murri <riccardo.murri@gmail.com>
 #
-VERSION='0.20 (SVN $Revision$)'
+VERSION='0.22 (SVN $Revision$)'
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin
@@ -84,7 +84,7 @@ __EOF__
 
     # define $APPPOT_HOME to the user home directory
     export APPPOT_HOME="`getent passwd "$user" | cut -d: -f6`"
-    chown -R "$uid":"$gid" "$APPPOT_HOME"
+    find "$APPPOT_HOME" -xdev -print0 | xargs --null chown "$uid":"$gid"
 
     # give $user access to the system console
     chown "$user" /dev/console
@@ -104,9 +104,14 @@ mount_hostfs () {
     hostdir=${1:?Missing required parameter HOSTDIR to 'mount_hostfs'}
     mountdir=${2:?Missing required parameter MOUNTDIR to 'mount_hostfs'}
 
-    echo "== Mounting host directory '$hostdir' on local directory '$mountdir' ..."
-    mkdir -p "$mountdir"
-    mount -t hostfs -o "$hostdir" host "$mountdir"
+    if fgrep -q hostfs /proc/filesystems; then
+        echo "== Mounting host directory '$hostdir' on local directory '$mountdir' ..."
+        mkdir -p "$mountdir"
+        mount -t hostfs -o "$hostdir" host "$mountdir"
+    else
+        echo "== WARNING: No 'hostfs' support in this kernel, cannot mount '$hostdir' on '$mountdir' ..."
+        return 1
+    fi
 }
 
 
