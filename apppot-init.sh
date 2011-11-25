@@ -8,7 +8,7 @@
 #
 # Author: Riccardo Murri <riccardo.murri@gmail.com>
 #
-VERSION='0.22 (SVN $Revision$)'
+VERSION='0.23 (SVN $Revision$)'
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin
@@ -133,6 +133,28 @@ merge_changes () {
     rc=$?
     umount /mnt
     return $rc
+}
+
+
+# setup_term TERM
+#
+# Set the `TERM` environment variable to the given value,
+# or fall back to the 'vt100' default if the specified
+# terminal is not supported on this system.
+#
+setup_term () {
+    term="${1:?Missing required parameter TERM to 'setup_term'}"
+    default_term='vt100'
+
+    term_name=`tput -T"$term" longname`
+    if [ -z "$term_name" ]; then
+        # terminal not supported, fall back to default
+        echo "== WARNING: Terminal '$term' not supported, falling back to '$default_term'."
+        export TERM="$default_term"
+    else
+        echo "== Using terminal $name"
+        export TERM="$term"
+    fi
 }
 
 
