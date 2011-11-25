@@ -1,7 +1,7 @@
 #! /bin/sh
 #
 PROG="$(basename $0)"
-VERSION=0.3
+VERSION='0.4 (SVN $Revision$)'
 
 usage () {
 cat <<EOF
@@ -19,11 +19,17 @@ begins its invocation:
 
   changes   Make an archive file at FILE containing the differences from
             the last snapshot created with '$PROG base'.  
-            If FILE is omitted, defaults to '/var/lib/apppot/snapshot.tgz'
+            If FILE is omitted, defaults to '$HOME/job/apppot.YYYY-MM-DD.changes.tar.gz'
+            (if '$HOME/job' is a mountpoint for accessing the host filesystem)
+            or, failing that, a file named 'apppot.changes.tar.gz' in the current
+            directory.
 
   merge     Merge differences from a the archive file at FILE
             into the current system.
-            If FILE is omitted, defaults to '/var/lib/apppot/snapshot.tgz'
+            If FILE is omitted, defaults to '$HOME/job/apppot.YYYY-MM-DD.changes.tar.gz'
+            (if '$HOME/job' is a mountpoint for accessing the host filesystem)
+            or, failing that, a file named 'apppot.changes.tar.gz' in the current
+            directory.
 
 
 Options:
@@ -109,6 +115,7 @@ action=$1
 
 ## main
 
+require_command date
 require_command tar
 require_command mktemp
 require_command mountpoint
@@ -125,9 +132,9 @@ default_archive () {
 # let the default archive location be what the init script expects
     home="$(home_directory)"
     if mountpoint -q "$home/job"; then
-        echo "$home/job/apppot-changes.tar.gz"
+        echo "$home/job/apppot.$(date -I).changes.tar.gz"
     else
-        echo "apppot-changes.tar.gz"
+        echo "$(pwd)/apppot.changes.tar.gz"
         warn "Default archive location '$home/job' does not look like a hostfs mount, storing changes into '$default_archive' instead."
     fi
 }
