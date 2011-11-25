@@ -1,7 +1,7 @@
 #! /bin/sh
 #
 PROG="$(basename $0)"
-VERSION="0.18 (SVN $Revision$)"
+VERSION="0.19 (SVN $Revision$)"
 
 usage () {
 cat <<EOF
@@ -18,25 +18,29 @@ port 8277.
 The following options are recognized; option processing stops at the
 first non-option argument (which must be PROG):
 
-  --apppot PATH  Use the specified AppPot system image.
-                 You can also specify a pair COWFILE:IMAGEFILE,
-                 in which case IMAGEFILE will be opened read-only
-                 and all changes will be written to COWFILE instead.
-
-  --mem NUM      Amount of memory to allocate to the
-                 AppPot system image; use the 'M' or 'G'
-                 suffix to denote MB or GB respectively.
-
-  --slirp PATH   Use the executable found at PATH as
-                 the 'slirp' command for providing
-                 IP network access.
-
-  --uml PATH     Use the UML 'linux' executable found at PATH.
-
-  --id NAME      Use NAME to control the running instance 
-                 with 'uml_mconsole'.
-
-  --help, -h     Print this help text.
+  --apppot PATH   Use the specified AppPot system image.
+                  You can also specify a pair COWFILE:IMAGEFILE,
+                  in which case IMAGEFILE will be opened read-only
+                  and all changes will be written to COWFILE instead.
+                  
+  --changes FILE  Merge the specified changes file into the AppPot system 
+                  image.  FILE must have been created with the 
+                  'apppot-snap changes' command (which see).
+                  
+  --mem NUM       Amount of memory to allocate to the
+                  AppPot system image; use the 'M' or 'G'
+                  suffix to denote MB or GB respectively.
+                  
+  --slirp PATH    Use the executable found at PATH as
+                  the 'slirp' command for providing
+                  IP network access.
+                  
+  --uml PATH      Use the UML 'linux' executable found at PATH.
+                  
+  --id NAME       Use NAME to control the running instance 
+                  with 'uml_mconsole'.
+                  
+  --help, -h      Print this help text.
 
 EOF
 }
@@ -118,7 +122,8 @@ fi
 while [ $# -gt 0 ]; do
     case "$1" in
         --apppot) shift; apppot="$1" ;;
-        --id) shift; umid="$1" ;;
+        --changes|--merge) shift; changes="$1" ;;
+        --id|--umid) shift; umid="$1" ;;
         --mem) shift; mem="$1" ;;
         --slirp) shift; slirp="$1" ;;
         --uml|--linux|--kernel) shift; linux="$1" ;;
@@ -178,6 +183,12 @@ if [ -z "$umid" ]; then
     umid=apppot."$(hostname).$$"
 fi
 
+if [ -n "$changes" ]; then
+    if ! is_absolute_path "$changes"; then
+        changes="$(pwd)/${changes}"
+    fi
+    opt_changes="apppot.changes=${changes}"
+fi
 
 # determine whether $apppot is a filesystem or disk image, 
 # and generate a `root=...` kernel parameter
@@ -210,7 +221,7 @@ APPPOT_UID=`id -u`
 APPPOT_GID=`id -g`
 
 if [ -n "$TERM" ]; then
-    term="TERM=$TERM"
+    opt_term="TERM=$TERM"
 fi
 
 # prepare command-line invocation
@@ -234,7 +245,8 @@ if test -t 0; then
         eth1=mcast,,239.255.82.77,8277,1 \
         con=fd:0,fd:1 \
         root="$rootfs" \
-        $term \
+        "$opt_term" \
+        "$opt_changes" \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
         apppot.jobdir=`pwd` \
@@ -264,7 +276,8 @@ elif have_command empty && stdin_is_not_dev_null; then
         eth1=mcast,,239.255.82.77,8277,1 \
         con=fd:0,fd:1 \
         root="$rootfs" \
-        $term \
+        "$opt_term" \
+        "$opt_changes" \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
         apppot.jobdir=`pwd` \
@@ -317,7 +330,8 @@ else
         eth1=mcast,,239.255.82.77,8277,1 \
         con=fd:0,fd:1 \
         root="$rootfs" \
-        $term \
+        "$opt_term" \
+        "$opt_changes" \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
         apppot.jobdir=`pwd` \
