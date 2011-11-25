@@ -8,7 +8,7 @@
 #
 # Author: Riccardo Murri <riccardo.murri@gmail.com>
 #
-VERSION="0.17 (SVN $Revision$)"
+VERSION="0.19 (SVN $Revision$)"
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin
@@ -17,7 +17,9 @@ NAME=apppot
 echo "==== Starting AppPot $VERSION ..."
 
 # Read configuration variable file if it is present
-[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+if [ -r /etc/default/$NAME ]; then
+    . /etc/default/$NAME
+fi
 
 
 ## defaults
@@ -102,9 +104,30 @@ mount_hostfs () {
     hostdir=${1:?Missing required parameter HOSTDIR to 'mount_hostfs'}
     mountdir=${2:?Missing required parameter MOUNTDIR to 'mount_hostfs'}
 
-    echo "== Mouting host directory '$hostdir' on local directory '$mountdir' ..."
+    echo "== Mounting host directory '$hostdir' on local directory '$mountdir' ..."
     mkdir -p "$mountdir"
     mount -t hostfs -o "$hostdir" host "$mountdir"
+}
+
+
+# merge_changes FILE
+#
+# Merge the changes from FILE (path in the host filesystem).
+# The named FILE must have been created by 'apppot-snap changes FILE'.
+#
+merge_changes () {
+    changes_file="${1:?Missing required parameter FILE to 'merge_changes'}"
+
+    echo "== Merging changes from host file '$changes_file' ..."
+    mount -t hostfs -o / hostroot /mnt
+    if [ ! -r "/mnt/$changes_file" ]; then
+        warn "Cannot read changes file '$changes_file': not merging changes."
+        return 1
+    fi
+    apppot-snap merge "/mnt/$changes_file"
+    rc=$?
+    umount /mnt
+    return $rc
 }
 
 
@@ -127,6 +150,7 @@ if [ -r /proc/cmdline ]; then
     set -- `cat /proc/cmdline`
     while [ $# -gt 0 ]; do
         case "$1" in
+            apppot.changes=*) export APPPOT_CHANGESFILE="$(value "$1")" ;;
             apppot.user=*)    export APPPOT_USER="$(value "$1")" ;;
             apppot.uid=*)     export APPPOT_UID="$(value "$1")" ;;
             apppot.group=*)   export APPPOT_GROUP="$(value "$1")" ;;
@@ -146,9 +170,8 @@ fi
 [ -n "$APPPOT_TMPDIR" ] && mount_hostfs $APPPOT_TMPDIR /tmp
 
 # extract a snapshot, if there is any
-if [ -r "$APPPOT_HOME/job/apppot-changes.tar.gz" ]; then
-    echo "== Merging snapshot '$APPPOT_HOME/job/apppot-changes.tar.gz' ..."
-    apppot-snap merge "$APPPOT_HOME/job/apppot-changes.tar.gz"
+if [ -n "$APPPOT_CHANGESFILE" ]; then
+    merge_changes "$APPPOT_CHANGESFILE"
 fi
 
 # ensure that the UID and GID of the user account are the same of the
