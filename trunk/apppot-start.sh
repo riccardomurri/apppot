@@ -126,7 +126,7 @@ while [ $# -gt 0 ]; do
         --id|--umid) shift; umid="$1" ;;
         --mem) shift; mem="$1" ;;
         --slirp) shift; slirp="$1" ;;
-        --uml|--linux|--kernel) shift; linux="$1" ;;
+        --linux|--kernel|--uml) shift; linux="$1" ;;
         --help|-h) usage; exit 0 ;;
         --*) die 1 "Unknown option '$1'; type '$PROG --help' to see usage help." ;;
         --) shift; break ;;
@@ -167,7 +167,7 @@ fi
 
 
 if [ -z "$linux" ]; then
-    die 1 "No 'linux' executable detected, please specify the UML kernel via the '--uml' option."
+    die 1 "No 'linux' executable detected, please specify the UML kernel via the '--linux' option."
 else
     require_command $linux
 fi
