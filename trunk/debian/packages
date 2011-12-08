@@ -21,6 +21,7 @@ Description: AppPot customizations
  GNU/Linux image into an AppPot image.
 Copyright: GPL
  Copyright 2011 University of Zurich. All rights reserved.
+Build-Depends: yada (>= %{YADA_VERSION}), sed
 Build: sh
  # nothing to build, this is a metapackage
  true
@@ -29,7 +30,7 @@ Clean: sh
  true
 
 Package: apppot-start
-Architecture: any
+Architecture: all
 Depends: bash, coreutils, findutils, sed
 Recommends: user-mode-linux, slirp, empty-expect
 Description:  AppPot starter script
@@ -42,9 +43,9 @@ Install: sh
  yada install -script -as apppot-start debian/apppot-start.sh
 
 Package: apppot
-Architecture: any
+Architecture: all
 Depends: bash, lsb-base (>= 3.0-6), screen, sudo
-Description:  AppPot customizations
+Description:  AppPot boot customizations
  This package installs the customizations that make a standard Debian
  GNU/Linux image into an AppPot image.
  .
