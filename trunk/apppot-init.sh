@@ -136,15 +136,17 @@ merge_changes () {
 }
 
 
-# setup_term TERM
+# setup_term TERM [DEFAULT]
 #
 # Set the `TERM` environment variable to the given value,
-# or fall back to the 'vt100' default if the specified
+# or fall back to the DEFAULT if the specified
 # terminal is not supported on this system.
+# 
+# If DEFAULT is omitted, use 'vt100'.
 #
 setup_term () {
     term="${1:?Missing required parameter TERM to 'setup_term'}"
-    default_term='vt100'
+    default_term="${2:-vt100}"
 
     term_name=`tput -T"$term" longname`
     if [ -z "$term_name" ]; then
@@ -184,7 +186,7 @@ if [ -r /proc/cmdline ]; then
             apppot.gid=*)     export APPPOT_GID="$(value "$1")" ;;
             apppot.jobdir=*)  export APPPOT_JOBDIR="$(value "$1")" ;;
             apppot.tmpdir=*)  export APPPOT_TMPDIR="$(value "$1")" ;;
-            TERM=*)           export TERM="$(value "$1")" ;;
+            TERM=*)           setup_term "$(value "$1")" ;;
         # `--` means end of kernel params and start of job arguments
             --) shift; break ;;
         esac
