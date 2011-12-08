@@ -1,7 +1,6 @@
 apppot (0.25-0) squeeze; urgency=low
 
-  * Fall back to TERM=vt100 if current $TERM is not supported. (Fixes
-	Issue 4.)
+  * Fall back to TERM=vt100 if current $TERM is not supported. Fixes Issue 4.
 
   * New options `--version` and `--extra` to `apppot-start`.
 
