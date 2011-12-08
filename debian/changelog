@@ -1,3 +1,9 @@
+apppot (0.24-1) squeeze; urgency=low
+
+  * Set architecture to "all", as appropriate for scripts.
+
+ -- Riccardo Murri <riccardo.murri@gmail.com>  Thu, 8  Dec 2011 11:21:35 +0100
+
 apppot (0.24) squeeze; urgency=low
 
   * Initial release.
