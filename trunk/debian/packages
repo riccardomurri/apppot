@@ -83,10 +83,10 @@ Init: sh
  #    command-line by apppot-start, or
  #    start an interactive shell.
  ### END INIT INFO
-
+ .
  APPPOT_INIT=/sbin/apppot-init
  [ -x $APPPOT_INIT ] || exit 0
-
+ .
  case "$1" in
    start|restart|force-reload)
      # pass control to the real init script
@@ -95,5 +95,5 @@ Init: sh
      # nothing to do
      true
  esac
-
+ .
  exit 0
