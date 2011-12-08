@@ -46,8 +46,8 @@ Package: apppot
 Architecture: all
 Depends: bash, lsb-base (>= 3.0-6), screen, sudo
 Description:  AppPot boot customizations
- This package installs the customizations that make a standard Debian
- GNU/Linux image into an AppPot image.
+ This package installs the *boot* customizations that make a standard
+ Debian GNU/Linux image into an AppPot image.
  .
  Installing this package will change the boot process dramatically,
  so you don't want to do it unless you know what you are doing.
@@ -93,11 +93,36 @@ Init: sh
  .
  case "$1" in
    start|restart|force-reload)
-     # pass control to the real init script
-     exec $APPPOT_INIT ;;    
+     # pass control to the real init script, 
+     # but only we're not running as a result 
+     # of `dpkg --configure`
+     if [ -z "$DPKG_MAINTSCRIPT_NAME" ]; then
+          exec $APPPOT_INIT
+     else
+          true # FIXME: log message
+     fi
+     ;;
    stop)
      # nothing to do
      true
+     ;;
  esac
  .
  exit 0
+Postinst: sh
+ # disable the TTY console entries in /etc/inittab,
+ # `apppot-init` will start an interactive shell if needed
+ if [ -w /etc/inittab ]; then
+   # comment out `getty` lines
+   sed -r -e '/^[^#].+\/sbin\/getty/s|^|#AppPot#|' /etc/inittab
+   # signal `init` to re-read /etc/inittab
+   #kill -1 1
+ fi
+Postrm: sh
+ # (re)enable the TTY console entries in /etc/inittab
+ if [ -w /etc/inittab ]; then
+   # undo commenting
+   sed -r -e 's|^#AppPot#||' /etc/inittab
+   # signal `init` to re-read /etc/inittab
+   #kill -1 1
+ fi
