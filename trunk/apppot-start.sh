@@ -39,7 +39,12 @@ first non-option argument (which must be PROG):
                   
   --id NAME       Use NAME to control the running instance 
                   with 'uml_mconsole'.
-                  
+
+  --extra ARG     Append ARG to the UML kernel command-line.
+                  (Repeat option multiple times to append more ARGs)
+
+  --version, -V   Print version and exit.
+
   --help, -h      Print this help text.
 
 EOF
@@ -95,6 +100,7 @@ if [ -n "$APPPOT_IMAGE" ]; then
 else
     apppot="apppot.img"
 fi
+extra=''
 mem="512M"
 
 # try to provide sensible defaults
@@ -123,6 +129,7 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --apppot) shift; apppot="$1" ;;
         --changes|--merge) shift; changes="$1" ;;
+        --extra|-X) shift; extra="$extra $1" ;;
         --id|--umid) shift; umid="$1" ;;
         --mem) shift; mem="$1" ;;
         --slirp) shift; slirp="$1" ;;
@@ -248,6 +255,7 @@ if test -t 0; then
         root="$rootfs" \
         "$opt_term" \
         "$opt_changes" \
+        $extra \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
         apppot.jobdir=`pwd` \
@@ -279,6 +287,7 @@ elif have_command empty && stdin_is_not_dev_null; then
         root="$rootfs" \
         "$opt_term" \
         "$opt_changes" \
+        $extra \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
         apppot.jobdir=`pwd` \
@@ -333,6 +342,7 @@ else
         root="$rootfs" \
         "$opt_term" \
         "$opt_changes" \
+        $extra \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
         apppot.jobdir=`pwd` \
