@@ -128,6 +128,7 @@ while [ $# -gt 0 ]; do
         --slirp) shift; slirp="$1" ;;
         --linux|--kernel|--uml) shift; linux="$1" ;;
         --help|-h) usage; exit 0 ;;
+        --version|-V) echo "$PROG $VERSION"; exit 0 ;;
         --*) die 1 "Unknown option '$1'; type '$PROG --help' to see usage help." ;;
         --) shift; break ;;
         # parsing stops at the first non-option argument
