@@ -30,7 +30,7 @@ Clean: sh
 
 Package: apppot-start
 Architecture: any
-Depends: bash
+Depends: bash, coreutils, findutils, sed
 Recommends: user-mode-linux, slirp, empty-expect
 Description:  AppPot starter script
  This package installs the 'apppot-start' script 
@@ -38,7 +38,8 @@ Description:  AppPot starter script
 Install: sh
  # files that will be installed by this package on the AppPot system
  # see http://yada.alioth.debian.org/ for the syntax of the `yada` cmd
- yada install -script -as apppot-start apppot-start.sh
+ sed -r -e "s/^VERSION='.+'/VERSION='%{VERSION}'/" apppot-start.sh > debian/apppot-start.sh
+ yada install -script -as apppot-start debian/apppot-start.sh
 
 Package: apppot
 Architecture: any
@@ -55,8 +56,10 @@ Description:  AppPot customizations
 Install: sh
  # files that will be installed by this package on the AppPot system
  # see http://yada.alioth.debian.org/ for the syntax of the `yada` cmd
- yada install -sscript -into /sbin -as apppot-init apppot-init.sh 
- yada install -script -as apppot-snap apppot-snap.sh
+ sed -r -e "s/^VERSION='.+'/VERSION='%{VERSION}'/" apppot-init.sh > debian/apppot-init.sh
+ sed -r -e "s/^VERSION='.+'/VERSION='%{VERSION}'/" apppot-snap.sh > debian/apppot-snap.sh
+ yada install -sscript -into /sbin -as apppot-init debian/apppot-init.sh 
+ yada install -script -as apppot-snap debian/apppot-snap.sh
  yada install -dir /var/lib/apppot
  yada install -data -into /var/lib/apppot apppot-snap.exclude
 Init: sh
