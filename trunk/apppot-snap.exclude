@@ -7,6 +7,11 @@
 # therefore use a leading './' because 'tar' is asked to archive
 # directory '.' in the system root directory.
 #
+# *Note:* The AppPot scripts are excluded, because they are both running
+# when the merge operation happens at boot time: changing the text in
+# a script while the shell is executing it is an almost sure recipe for
+# getting syntax errors.
+#
 ./dev
 ./etc/fstab
 ./etc/mtab
@@ -19,8 +24,10 @@
 ./mnt
 ./proc
 ./selinux
+./sbin/apppot-init
 ./sys
 ./tmp
+./usr/bin/apppot-snap
 ./var/cache/apt
 ./var/cache/ldconfig
 ./var/cache/man
