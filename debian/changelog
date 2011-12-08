@@ -1,3 +1,12 @@
+apppot (0.25-0) squeeze; urgency=low
+
+  * Fall back to TERM=vt100 if current $TERM is not supported. (Fixes
+	Issue 4.)
+
+  * New options `--version` and `--extra` to `apppot-start`.
+
+ -- Riccardo Murri <riccardo.murri@gmail.com>  Thu, 8  Dec 2011 13:05:00 +0100
+
 apppot (0.24-1) squeeze; urgency=low
 
   * Set architecture to "all", as appropriate for scripts.
