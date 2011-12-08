@@ -1,0 +1,99 @@
+
+## This is adapted from the example packages file for YADA; read
+## /usr/share/doc/yada-doc/yada.txt.gz (from the yada-doc package) to
+## find out how to customise it to your needs.
+
+Source: apppot
+Section: unknown
+Priority: extra
+Maintainer: Riccardo Murri <riccardo.murri@gmail.com>
+Origin: GC3
+Packaged-For: Grid Computing Competence Center, 
+  University of Zurich
+Standards-Version: 3.7.2
+Homepage: http://apppot.googlecode.com/
+# FIXME: this should likely point to an upstream .tar.gz ?
+Upstream-Source: http://code.google.com/p/apppot/source/browse
+Vcs-Browser: http://code.google.com/p/apppot/source/browse
+Vcs-Svn: http://apppot.googlecode.com/svn/trunk/
+Description: AppPot customizations
+ This package installs the customizations that make a standard Debian
+ GNU/Linux image into an AppPot image.
+Copyright: GPL
+ Copyright 2011 University of Zurich. All rights reserved.
+Build: sh
+ # nothing to build, this is a metapackage
+ true
+Clean: sh
+ # likewise, nothing to remove
+ true
+
+Package: apppot-start
+Architecture: any
+Depends: bash
+Recommends: user-mode-linux, slirp, empty-expect
+Description:  AppPot starter script
+ This package installs the 'apppot-start' script 
+ used to run AppPot VM images.
+Install: sh
+ # files that will be installed by this package on the AppPot system
+ # see http://yada.alioth.debian.org/ for the syntax of the `yada` cmd
+ yada install -script -as apppot-start apppot-start.sh
+
+Package: apppot
+Architecture: any
+Depends: bash, lsb-base (>= 3.0-6), screen, sudo
+Description:  AppPot customizations
+ This package installs the customizations that make a standard Debian
+ GNU/Linux image into an AppPot image.
+ .
+ Installing this package will change the boot process dramatically,
+ so you don't want to do it unless you know what you are doing.
+ .
+ Repeat: DO NOT INSTALL THIS PACKAGE unless you know what you
+ are doing.
+Install: sh
+ # files that will be installed by this package on the AppPot system
+ # see http://yada.alioth.debian.org/ for the syntax of the `yada` cmd
+ yada install -sscript -into /sbin -as apppot-init apppot-init.sh 
+ yada install -script -as apppot-snap apppot-snap.sh
+ yada install -dir /var/lib/apppot
+ yada install -data -into /var/lib/apppot apppot-snap.exclude
+Init: sh
+ defaults 99
+ # Chain-load the AppPot init script
+ #
+ # Copyright (c) 2011 GC3, University of Zurich
+ #
+ # This file can be distributed and modified according to 
+ # the terms of the GNU Public Licence version 3, or
+ # (at your option) any later version.
+ #
+ ### BEGIN INIT INFO
+ # Provides:       apppot
+ # Required-Start: $all
+ # Required-Stop:
+ # Default-Start:  2 3 4 5
+ # Default-Stop:   0 1 6
+ # X-Interactive: true
+ # Short-Description: AppPot init script
+ # Description:
+ #    Hijack the boot process to execute
+ #    any payload specified on the kernel
+ #    command-line by apppot-start, or
+ #    start an interactive shell.
+ ### END INIT INFO
+
+ APPPOT_INIT=/sbin/apppot-init
+ [ -x $APPPOT_INIT ] || exit 0
+
+ case "$1" in
+   start|restart|force-reload)
+     # pass control to the real init script
+     exec $APPPOT_INIT ;;    
+   stop)
+     # nothing to do
+     true
+ esac
+
+ exit 0
