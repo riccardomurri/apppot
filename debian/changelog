@@ -1,3 +1,11 @@
+apppot (0.26-1) squeeze; urgency=low
+
+  * Disable consoles in /etc/inittab on install; re-enable them upon remove.
+  * Replace /etc/rc.local if it contains `apppot-init.sh` code.
+  * Fix dependencies of the `apppot` package.
+
+ -- Riccardo Murri <riccardo.murri@gmail.com>  Thu, 14 Dec 2011 00:04:00 +0100
+
 apppot (0.25-3) squeeze; urgency=low
 
   * Fix crash on upgrade.
