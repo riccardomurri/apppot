@@ -1,7 +1,10 @@
 Slirp was written by Danny Gasparovski.
 Copyright (c), 1995,1996 All Rights Reserved.
 
-Slirp is maintained by Kelly Price <tygris+slirp@erols.com>
+Slirp has been maintained by Kelly Price <tygris+slirp@erols.com> but
+is apparently unmaintanted upstream as of 2012.  Only Debian/Ubuntu
+still ship the source and build the package; as of February 2012, the
+Debian maintainer of the `slirp` package is Roberto Lumbreras <rover@debian.org>
 
 Slirp is free software; "free" as in you don't have to pay for it, and you
 are free to do whatever you want with it.  I do not accept any donations,
