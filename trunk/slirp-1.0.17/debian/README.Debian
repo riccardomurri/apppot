@@ -1,0 +1,8 @@
+slirp for Debian
+----------------
+
+Please note that maybe your ISP really doesn't like you using slirp,
+because they want to charge more for a ppp connection, so use it at
+your own risk.
+
+ -- Roberto Lumbreras <rover@debian.org>, Fri, 12 Jul 2002 16:46:24 +0200

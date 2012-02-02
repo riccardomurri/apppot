@@ -1,0 +1,119 @@
+Author: Roberto Lumbreras <rover@debian.org>
+Description: Fix compilation warnings
+
+--- slirp-1.0.17.old/src/config.h.in	2004-09-01 11:58:50.000000000 +0200
++++ slirp-1.0.17/src/config.h.in	2010-07-04 19:40:09.498052136 +0200
+@@ -45,6 +45,8 @@
+ #define NO_PROTOTYPES
+ #endif
+ 
++#define _GNU_SOURCE
++
+ /*********************************************************/
+ /*
+  * Autoconf defined configuration options
+--- slirp-1.0.17.old/src/main.h	2006-05-18 21:22:46.000000000 +0200
++++ slirp-1.0.17/src/main.h	2010-07-04 19:43:39.322051994 +0200
+@@ -10,6 +10,7 @@
+ 
+ #include <sys/types.h>
+ #include <unistd.h>
++#include <ctype.h>
+ 
+ #ifdef HAVE_SYS_SELECT_H
+ #include <sys/select.h>
+--- slirp-1.0.17.old/src/mbuf.h	2004-09-01 09:36:45.000000000 +0200
++++ slirp-1.0.17/src/mbuf.h	2010-07-04 19:46:43.542051864 +0200
+@@ -132,6 +132,6 @@
+ extern struct	mbstat mbstat;
+ extern int mbuf_alloced;
+ extern struct mbuf m_freelist, m_usedlist;
+-extern mbuf_max;
++extern int mbuf_max;
+ 
+ #endif
+--- slirp-1.0.17.old/src/ppp/ccp.c	2004-09-01 09:36:51.000000000 +0200
++++ slirp-1.0.17/src/ppp/ccp.c	2010-07-04 19:53:56.266052492 +0200
+@@ -464,7 +464,7 @@
+ 
+ 	if (newret == CONFNAK && dont_nak)
+ 	    newret = CONFREJ;
+-	if (!(newret == CONFACK || newret == CONFNAK && ret == CONFREJ)) {
++	if (!(newret == CONFACK || (newret == CONFNAK && ret == CONFREJ))) {
+ 	    /* we're returning this option */
+ 	    if (newret == CONFREJ && ret == CONFNAK)
+ 		retp = p0;
+--- slirp-1.0.17.old/src/ppp/ipcp.c	2004-09-07 03:50:08.000000000 +0200
++++ slirp-1.0.17/src/ppp/ipcp.c	2010-07-04 19:54:59.854051807 +0200
+@@ -568,7 +568,7 @@
+ 	    no.neg_vj = 1;
+ 	    break;
+ 	case CI_ADDRS:
+-	    if (go->neg_addr && go->old_addrs || no.old_addrs
++	    if ((go->neg_addr && go->old_addrs) || no.old_addrs
+ 		|| cilen != CILEN_ADDRS)
+ 		goto bad;
+ 	    try.neg_addr = 1;
+--- slirp-1.0.17.old/src/ppp/lcp.c	2004-09-01 09:36:52.000000000 +0200
++++ slirp-1.0.17/src/ppp/lcp.c	2010-07-04 19:55:23.146051859 +0200
+@@ -39,6 +39,7 @@
+ #include "chap.h"
+ #include "upap.h"
+ #include "ipcp.h"
++#include "ccp.h"
+ 
+ /* global vars */
+ fsm lcp_fsm[NUM_PPP];			/* LCP fsm structure (global)*/
+--- slirp-1.0.17.old/src/ppp/ppp.h	2004-09-01 09:36:52.000000000 +0200
++++ slirp-1.0.17/src/ppp/ppp.h	2010-07-04 19:52:06.634052434 +0200
+@@ -54,4 +54,18 @@
+ 
+ void print_string _P((char *, int, void (*) _P((void *, char *, ...)), void *));
+ 
++int bad_ip_adrs(u_int32_t addr);
++void novm __P((char *));
++void auth_peer_fail(int unit, int protocol);
++void auth_withpeer_fail(int unit, int protocol);
++void auth_peer_success(int unit, int protocol);
++void auth_withpeer_success(int unit, int protocol);
++int auth_ip_addr(int unit, u_int32_t addr);
++void link_established(int unit);
++void link_down(int unit);
++void link_required(int unit);
++void link_terminated(int unit);
++void check_auth_options();
++void check_access(FILE *f, char *filename);
++
+ #endif /* __PPP_H__ */
+--- slirp-1.0.17.old/src/ppp.c	2004-09-01 09:36:44.000000000 +0200
++++ slirp-1.0.17/src/ppp.c	2010-07-04 19:55:46.902052003 +0200
+@@ -40,6 +40,7 @@
+ #include <syslog.h>
+ #include <utmp.h>
+ #include <pwd.h>
++#include <ctype.h>
+ 
+ #include <sys/param.h>
+ #include <sys/types.h>
+--- slirp-1.0.17.old/src/tcp_output.c	2004-09-01 09:36:44.000000000 +0200
++++ slirp-1.0.17/src/tcp_output.c	2010-07-04 19:59:17.070051654 +0200
+@@ -592,7 +592,7 @@
+ tcp_setpersist(tp)
+ 	register struct tcpcb *tp;
+ {
+-	register t = ((tp->t_srtt >> 2) + tp->t_rttvar) >> 1;
++	register int t = ((tp->t_srtt >> 2) + tp->t_rttvar) >> 1;
+ 
+ /*	if (tp->t_timer[TCPT_REXMT])
+  *		panic("tcp_output REXMT");
+--- slirp-1.0.17.old/src/ttys.c	2004-09-07 02:00:45.000000000 +0200
++++ slirp-1.0.17/src/ttys.c	2010-07-04 19:58:38.418051646 +0200
+@@ -11,6 +11,8 @@
+ #endif
+ #include <slirp.h>
+ 
++void lcp_lowerdown(int unit);
++
+ struct ttys *ttys_unit[MAX_INTERFACES];
+ 
+ int slirp_forked;

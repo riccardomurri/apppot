@@ -1,0 +1,17 @@
+.TH SLIRP-FULLBOLT 1 
+.SH NAME
+slirp-fullbolt \- fast slirp for non interactive sessions
+.SH SYNOPSIS
+See
+.BR slirp (1)
+.SH DESCRIPTION
+slirp-fullbolt is a slirp configured to write to the tty as fast as it
+can. It should only be used if you are using load-balancing, slirp does a
+pretty good job on single modems already, and slirp-fullbolt will make
+interactive sessions less responsive.
+.SH AUTHOR
+.PP
+This manual page was written by Roberto Lumbreras <rover@debian.org>, for
+the Debian GNU/Linux system (but may be used by others).
+.SH "SEE ALSO"
+.BR slirp (1)

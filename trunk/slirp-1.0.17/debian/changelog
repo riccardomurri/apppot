@@ -1,0 +1,132 @@
+slirp (1:1.0.17-5) unstable; urgency=low
+
+  * Don't delete *.p files and don't run 'mkpro' perl script anymore to
+    automatically regenerate prototypes, as it stopped working somehow,
+    resulting in FTBFS. (Closes: #628280)
+  * Updated standards.
+  * Add -Wl,--as-needed to LDFLAGS.
+
+ -- Roberto Lumbreras <rover@debian.org>  Mon, 06 Jun 2011 06:18:08 +0200
+
+slirp (1:1.0.17-4) unstable; urgency=low
+
+  * Fix crash on amd64 when enabling file logging. (Closes: #587907)
+  * Updated standards.
+  * Switch to dpkg-source 3.0 (quilt) format.
+  * Fix watch file.
+
+ -- Roberto Lumbreras <rover@debian.org>  Sun, 04 Jul 2010 21:16:28 +0200
+
+slirp (1:1.0.17-3) unstable; urgency=low
+
+  * Updated standards.
+  * Fix arguements spelling-error-in-binary (lintian).
+  * debian/HOWTO-TEST: use "ssh -t" to force tty allocation. (Closes: #544124)
+
+ -- Roberto Lumbreras <rover@debian.org>  Sat, 29 Aug 2009 14:17:24 +0200
+
+slirp (1:1.0.17-2) unstable; urgency=low
+
+  * Clean up compilation warnings and a few snprintf changes.
+    Use addrlen as socklen_t instead of int. Tested on amd64 and it works.
+    (Closes: #29245)
+  * Switch to cdbs.
+
+ -- Roberto Lumbreras <rover@debian.org>  Tue, 14 Aug 2007 17:22:55 +0200
+
+slirp (1:1.0.17-1) unstable; urgency=low
+
+  * New upstream version. (Closes: #175079)
+  * Add slirp-fullbolt manpage. (Closes: #223920)
+  * Updated standards (no changes).
+
+ -- Roberto Lumbreras <rover@debian.org>  Thu, 18 May 2006 19:42:29 +0200
+
+slirp (1:1.0.16-3) unstable; urgency=high
+
+  * Add an epoch to fix hijacking of package by Debian JED group.
+    (Closes: #339578)
+  * Updated standards (no changes).
+
+ -- Roberto Lumbreras <rover@debian.org>  Mon, 16 Jan 2006 14:10:48 +0100
+
+slirp (1.0.16-2) unstable; urgency=high
+
+  * Fix ttyname segfault. Added -fno-strict-aliasing to CFLAGS to avoid
+  incorrect code generation with gcc >= 3.3. (closes:#295832)
+
+ -- Roberto Lumbreras <rover@debian.org>  Tue, 01 Mar 2005 12:15:03 +0100
+
+slirp (1.0.16-1) unstable; urgency=low
+
+  * New upstream version.
+  * Updated standards.
+
+ -- Roberto Lumbreras <rover@debian.org>  Fri, 04 Feb 2005 03:53:09 +0100
+
+slirp (1.0.14pre1-4) unstable; urgency=low
+
+  * Provide a separate slirp-fullbolt binary built with FULL_BOLT.
+    (closes:#175093)
+
+ -- Roberto Lumbreras <rover@debian.org>  Tue, 06 May 2003 17:17:40 +0200
+
+slirp (1.0.14pre1-3) unstable; urgency=low
+
+  * src/debug.c: added ifndef so it compiles with FULL_BOLT. (closes:#175083)
+  * Standards 3.5.9.
+
+ -- Roberto Lumbreras <rover@debian.org>  Sat, 15 Mar 2003 19:37:13 +0100
+
+slirp (1.0.14pre1-2) unstable; urgency=low
+
+  * debian/rules: switched to debhelper.
+  * debian/control: added slirp home page to description.
+
+ -- Roberto Lumbreras <rover@debian.org>  Fri, 12 Jul 2002 18:32:34 +0200
+
+slirp (1.0.14pre1-1) unstable; urgency=low
+
+  * New upstream version.
+  * Standards 3.5.2.
+
+ -- Roberto Lumbreras <rover@debian.org>  Sun,  1 Apr 2001 19:57:28 +0200
+
+slirp (1.0.9-1) unstable; urgency=low
+
+  * New upstream version.
+  * Standards 3.1.1.
+
+ -- Roberto Lumbreras <rover@debian.org>  Sun, 26 Mar 2000 20:53:27 +0200
+
+slirp (1.0g-2) frozen; urgency=high
+
+  * Fixed important bug. (closes: bug#59608)
+
+ -- Roberto Lumbreras <rover@debian.org>  Sat, 25 Mar 2000 20:34:48 +0100
+
+slirp (1.0g-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Roberto Lumbreras <rover@debian.org>  Wed, 18 Aug 1999 13:16:06 +0200
+
+slirp (1.0f-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Roberto Lumbreras <rover@debian.org>  Wed, 17 Mar 1999 19:02:28 +0100
+
+slirp (1.0d-1) unstable; urgency=low
+
+  * New upstream version.
+
+ -- Roberto Lumbreras <rover@debian.org>  Sun, 11 Oct 1998 01:49:06 +0200
+
+slirp (1.0c-1) unstable; urgency=low
+
+  * initial release
+  * added debian files
+
+ -- Roberto Lumbreras <rover@debian.org>  Mon,  3 Aug 1998 01:03:35 +0200
+

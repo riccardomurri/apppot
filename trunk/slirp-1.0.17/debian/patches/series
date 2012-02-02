@@ -1,0 +1,9 @@
+001-update-man-fix-hyphens-as-minus.patch
+002-fix-arguements.patch
+003-socklen_t.patch
+004-compilation-warnings.patch
+005-use-snprintf.patch
+006-changelog-1.0.17.patch
+007-debian-changes.patch
+008-slirp-amd64-log-crash.patch
+009-i-hate-perl.patch
