@@ -225,7 +225,7 @@ fi
 # XXX: complicated heuristics, may fail unpredictably
 require_command expr
 require_command file
-what=$(file -b "$apppot_img")
+what=$(file --dereference --brief "$apppot_img")
 case "$what" in
     'x86 boot sector'*)
         # disk image, determine boot partition
@@ -320,6 +320,7 @@ elif have_command empty && stdin_is_not_dev_null; then
     
     # send UMLx console output to STDOUT
     cat .apppot.stdout
+
 
 else
     require_command kill
