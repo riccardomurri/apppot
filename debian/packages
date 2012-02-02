@@ -44,7 +44,8 @@ Install: sh
 
 Package: apppot
 Architecture: all
-Depends: bash, lsb-base (>= 3.0-6), screen, sudo
+Depends: bash, grep, initscripts, login, lsb-base (>= 3.0-6), mount, ncurses-bin, 
+         screen, sed, sudo, sysvinit | upstart
 Description:  AppPot boot customizations
  This package installs the *boot* customizations that make a standard
  Debian GNU/Linux image into an AppPot image.
@@ -117,6 +118,17 @@ Postinst: sh
    sed -r -e '/^[^#].+\/sbin\/getty/s|^|#AppPot#|' -i /etc/inittab
    # signal `init` to re-read /etc/inittab
    #kill -1 1
+ fi
+ # replace /etc/rc.local if it contains old apppot-init.sh code.
+ if grep -F -q '==== Starting AppPot' /etc/rc.local; then
+   mv /etc/rc.local /etc/rc.local.apppot-bak
+   echo '#!/bin/sh -e' >> /etc/rc.local
+   echo '# The old /etc/rc.local script was removed by AppPot' >> /etc/rc.local
+   echo '# because it contained old AppPot boot code,' >> /etc/rc.local
+   echo '# and replaced with this copy, that -just like' >> /etc/rc.local
+   echo "# Debian's default one- does nothing." >> /etc/rc.local
+   echo "# The old script has been renamed to '/etc/rc.local.apppot-bak'." >> /etc/rc.local
+   echo "exit 0" >> /etc/rc.local
  fi
 Postrm: sh
  # (re)enable the TTY console entries in /etc/inittab
