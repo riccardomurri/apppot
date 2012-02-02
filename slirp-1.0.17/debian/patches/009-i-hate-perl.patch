@@ -1,0 +1,24 @@
+Description: Do not run MAKEPRO anymore
+ mkpro is a nice perl script that used to regenerate all slirp prototypes
+ correctly in the past. It stopped working, maybe because a change in perl
+ and/or because it has a bug. I'm not a perl guru, and after wasting hours
+ of my time trying to decypher mkrpo and fixing that silly thing, I quit.
+ Slirp hasn't changed for years, so I think mkpro isn't very usefull anyway.
+ .
+Author: Roberto Lumbreras <rover@debian.org>
+Bug-Debian: http://bugs.debian.org/628280
+
+Index: slirp-1.0.17/src/Makefile.in
+===================================================================
+--- slirp-1.0.17.orig/src/Makefile.in	2011-06-06 06:27:00.000000000 +0200
++++ slirp-1.0.17/src/Makefile.in	2011-06-06 06:37:19.627022610 +0200
+@@ -96,7 +96,8 @@
+ #
+ 
+ .c.p:
+-	$(MAKEPRO)
++#	$(MAKEPRO)
++	touch $@
+ 
+ 
+ auth.o: $(COMMON_H) ${srcdir}/ppp/auth.c

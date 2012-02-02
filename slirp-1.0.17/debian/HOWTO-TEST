@@ -1,0 +1,134 @@
+HOW TO TEST SLIRP
+-----------------
+
+root@local:~# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+192.168.1.0     0.0.0.0         255.255.255.0   U     0      0        0 eth1
+0.0.0.0         192.168.1.1     0.0.0.0         UG    0      0        0 eth1
+
+root@local:~# pppd nodefaultroute noauth nobsdcomp nodetach debug :10.1.2.1 pty "ssh -t user@remote.machine.org slirp ppp"
+
+(if ssh asks you for a password, type it, or better, set up ssh so it allows
+you connecting without password, see ssh-keygen and authorized_keys in ssh
+manpages)
+
+(you can omit later "nodetach debug" when it works so it leaves you free
+the terminal)
+
+the output should be some like this:
+
+using channel 42
+Using interface ppp0
+Connect: ppp0 <--> /dev/pts/4
+sent [LCP ConfReq id=0x1 <asyncmap 0x0> <magic 0xf74615a7> <pcomp>
+<accomp>]
+Executing slirp-amd64 in chroot:
+/org/pergolesi.debian.org/chroot/sid_amd64_pure
+Slirp v1.0.17 (BETA)
+
+Copyright (c) 1995,1996 Danny Gasparovski and others.
+All rights reserved.
+This program is copyrighted, free software.
+Please read the file COPYRIGHT that came with the Slirp
+package for the terms and conditions of the copyright.
+
+IP address of Slirp host: 192.168.92.92
+IP address of your DNS(s): 192.168.93.98, 192.168.96.93, 192.168.93.91
+Your address is 10.0.2.15
+(or anything else you want)
+
+Type five zeroes (0) to exit.
+
+[talking PPP, 115200 baud]
+
+SLiRP Ready ...
+rcvd [LCP ConfReq id=0x1 <mru 1500> <magic 0xc78771c2> <pcomp> <accomp>]
+sent [LCP ConfAck id=0x1 <mru 1500> <magic 0xc78771c2> <pcomp> <accomp>]
+rcvd [LCP ConfAck id=0x1 <asyncmap 0x0> <magic 0xf74615a7> <pcomp> <accomp>]
+sent [LCP EchoReq id=0x0 magic=0xf74615a7]
+sent [CCP ConfReq id=0x1 <deflate 15> <deflate(old#) 15>]
+sent [IPCP ConfReq id=0x1 <compress VJ 0f 01> <addr 192.168.1.10>]
+rcvd [LCP EchoRep id=0x0 magic=0xc78771c2]
+rcvd [IPCP ConfReq id=0x1 <addr 192.168.92.92> <compress VJ 0f 01>]
+sent [IPCP ConfNak id=0x1 <addr 10.1.2.1>]
+rcvd [CCP ConfReq id=0x1]
+sent [CCP ConfAck id=0x1]
+rcvd [CCP ConfRej id=0x1 <deflate 15> <deflate(old#) 15>]
+sent [CCP ConfReq id=0x2]
+rcvd [IPCP ConfNak id=0x1 <addr 10.0.2.15>]
+sent [IPCP ConfReq id=0x2 <compress VJ 0f 01> <addr 10.0.2.15>]
+rcvd [IPCP ConfReq id=0x2 <addr 10.1.2.1> <compress VJ 0f 01>]
+sent [IPCP ConfAck id=0x2 <addr 10.1.2.1> <compress VJ 0f 01>]
+rcvd [CCP ConfAck id=0x2]
+rcvd [IPCP ConfAck id=0x2 <compress VJ 0f 01> <addr 10.0.2.15>]
+Cannot determine ethernet address for proxy ARP
+local  IP address 10.0.2.15
+remote IP address 10.1.2.1
+Script /etc/ppp/ip-up started (pid 10418)
+Script /etc/ppp/ip-up finished (pid 10418), status = 0x0
+
+
+in another terminal:
+
+root@local:~# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+10.1.2.1        0.0.0.0         255.255.255.255 UH    0      0        0 ppp0
+192.168.1.0     0.0.0.0         255.255.255.0   U     0      0        0 eth1
+0.0.0.0         192.168.1.1     0.0.0.0         UG    0      0        0 eth1
+
+root@local:~# route add -host www.google.com dev ppp0
+root@local:~# route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+10.1.2.1        0.0.0.0         255.255.255.255 UH    0      0        0 ppp0
+216.239.59.99   0.0.0.0         255.255.255.255 UH    0      0        0 ppp0
+192.168.1.0     0.0.0.0         255.255.255.0   U     0      0        0 eth1
+0.0.0.0         192.168.1.1     0.0.0.0         UG    0      0        0 eth1
+
+note that www.google.com has more than one IP and you have put only one in
+your routing table:
+
+root@local:~# host www.google.com
+www.google.com is an alias for www.l.google.com.
+www.l.google.com has address 216.239.59.103
+www.l.google.com has address 216.239.59.104
+www.l.google.com has address 216.239.59.147
+www.l.google.com has address 216.239.59.99
+
+root@tordo:~# telnet 216.239.59.99 80
+Trying 216.239.59.99...
+Connected to 216.239.59.99.
+Escape character is '^]'.
+GET / HTTP/1.0   <---- type this, and one ENTER
+Host: www.google.com   <---- type this, and two ENTER
+
+HTTP/1.0 302 Found
+Location: http://www.google.de/
+Cache-Control: private
+Set-Cookie:
+PREF=ID=91babd388241b148:TM=1187103593:LM=1187103593:S=HnEmAd_s3Kkdf2pV;
+expires=Sun, 17-Jan-2038 19:14:07 GMT; path=/; domain=.google.com
+Content-Type: text/html
+Server: GWS/2.1
+Content-Length: 218
+Date: Tue, 14 Aug 2007 14:59:53 GMT
+Connection: Keep-Alive
+
+<HTML><HEAD><meta http-equiv="content-type"
+content="text/html;charset=utf-8">
+<TITLE>302 Moved</TITLE></HEAD><BODY>
+<H1>302 Moved</H1>
+The document has moved
+<A HREF="http://www.google.de/">here</A>.
+</BODY></HTML>
+Connection closed by foreign host.
+root@local:~# 
+
+To end the link:
+
+You can just press ^C in the terminal pppd is running (when using nodetach)
+or else run "poff" or "killall pppd"
+
+Enjoy!

@@ -1,0 +1,19 @@
+Source: slirp
+Section: net
+Priority: optional
+Maintainer: Roberto Lumbreras <rover@debian.org>
+Build-Depends: cdbs, debhelper (>= 7), autotools-dev
+Standards-Version: 3.9.2
+Homepage: http://slirp.sourceforge.net
+
+Package: slirp
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: SLIP/PPP emulator using a dial up shell account
+ Slirp is a TCP/IP emulator which turns an ordinary shell account
+ into a (C)SLIP/PPP account.  This allows shell users to use all the
+ funky Internet applications like Netscape, Mosaic, CUSeeMe, etc.
+ .
+ Please note that maybe your ISP really doesn't like you using slirp,
+ because they want to charge more for a ppp connection, so use it at
+ your own risk.

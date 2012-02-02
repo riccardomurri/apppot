@@ -1,0 +1,38 @@
+Author: Roberto Lumbreras <rover@debian.org>
+Description: Debian building changes
+
+--- slirp-1.0.17.orig/src/Makefile.in
++++ slirp-1.0.17/src/Makefile.in
+@@ -209,3 +209,4 @@ strtoul.o: ${srcdir}/strtoul.c
+ .c.o: $(COMMON_H)
+ 	$(CC) $(CFLAGS) -c $< -o $@
+ 
++nothing:
+--- slirp-1.0.17.orig/src/main.c
++++ slirp-1.0.17/src/main.c
+@@ -73,7 +73,11 @@ main(argc, argv)
+ 	lprint_ptr2 = (char *)stderr;
+ 	lprint_arg = (char **)&lprint_ptr2;
+ 
++#ifndef FULL_BOLT
+ 	lprint("Slirp v%s (%s)\n\n", SLIRP_VERSION, SLIRP_STATUS);
++#else
++	lprint("Slirp v%s (%s) FULL_BOLT\n\n", SLIRP_VERSION, SLIRP_STATUS);
++#endif
+ 
+ 	lprint("Copyright (c) 1995,1996 Danny Gasparovski and others.\n");
+ 	lprint("All rights reserved.\n");
+--- slirp-1.0.17.orig/src/options.c
++++ slirp-1.0.17/src/options.c
+@@ -1103,7 +1103,11 @@ cfg_version(buff, inso)
+ 	char *buff;
+ 	struct socket *inso;
+ {
++#ifndef FULL_BOLT
+ 	lprint("Slirp v%s (%s)\r\n", SLIRP_VERSION, SLIRP_STATUS);
++#else
++	lprint("Slirp v%s (%s) FULL_BOLT\r\n", SLIRP_VERSION, SLIRP_STATUS);
++#endif
+ 
+ 	return CFG_OK;
+ }

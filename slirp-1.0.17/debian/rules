@@ -1,0 +1,34 @@
+#!/usr/bin/make -f
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
+
+DEB_SRCDIR = src
+DEB_MAKE_CLEAN_TARGET = realclean
+DEB_MAKE_BUILD_TARGET = nothing
+DEB_MAKE_INSTALL_TARGET = 
+DEB_INSTALL_CHANGELOGS_ALL = ChangeLog
+
+CC        = gcc
+CFLAGS   += -I. -DUSE_PPP -DUSE_MS_DNS -fno-strict-aliasing -Wno-unused
+PPPCFLAGS = $(CFLAGS)
+LDFLAGS += -Wl,--as-needed
+
+clean::
+	cd $(DEB_SRCDIR) && \
+		rm -f slirp-fullbolt slirp-normal
+
+build/slirp:: src/slirp-fullbolt src/slirp-normal
+
+src/slirp-fullbolt:
+	cd $(DEB_SRCDIR); \
+		$(MAKE) CFLAGS="$(CFLAGS) -DFULL_BOLT" \
+			PPPCFLAGS="$(PPPCFLAGS)" clean all && \
+		mv slirp slirp-fullbolt
+
+src/slirp-normal:
+	cd $(DEB_SRCDIR); \
+		$(MAKE) CFLAGS="$(CFLAGS)" \
+			PPPCFLAGS="$(PPPCFLAGS)" clean all && \
+		touch slirp-normal
+

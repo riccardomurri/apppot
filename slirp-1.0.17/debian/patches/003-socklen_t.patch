@@ -1,0 +1,91 @@
+Author: Roberto Lumbreras <rover@debian.org>
+Description: Use addrlen as socklen_t instead of int
+
+--- slirp-1.0.17.old/src/main.c	2010-07-04 18:39:03.870052173 +0200
++++ slirp-1.0.17/src/main.c	2010-07-04 19:03:25.122052376 +0200
+@@ -990,10 +990,10 @@
+ 		char *device = dev;
+ #ifndef NO_UNIX_SOCKETS
+ 		struct sockaddr_un sock_un;
+-		int sock_len = sizeof(struct sockaddr_un);
++		socklen_t sock_len = sizeof(struct sockaddr_un);
+ #endif
+ 		struct sockaddr_in sock_in;
+-		int sock_len2 = sizeof(struct sockaddr_in);
++		socklen_t sock_len2 = sizeof(struct sockaddr_in);
+ 
+ 		fd = -1;
+ 		if (slirp_socket_passwd)
+--- slirp-1.0.17.old/src/misc.c	2004-09-07 04:03:10.000000000 +0200
++++ slirp-1.0.17/src/misc.c	2010-07-04 19:03:25.122052376 +0200
+@@ -298,7 +298,7 @@
+ {
+ 	int s;
+ 	struct sockaddr_in addr;
+-	int addrlen = sizeof(addr);
++	socklen_t addrlen = sizeof(addr);
+ 	int opt;
+         int master;
+ 	char *argv[256];
+--- slirp-1.0.17.old/src/socket.c	2004-09-01 09:36:44.000000000 +0200
++++ slirp-1.0.17/src/socket.c	2010-07-04 19:03:25.122052376 +0200
+@@ -377,7 +377,7 @@
+ 	struct socket *so;
+ {
+ 	struct sockaddr_in addr;
+-	int addrlen = sizeof(struct sockaddr_in);
++	socklen_t addrlen = sizeof(struct sockaddr_in);
+ 	
+ 	DEBUG_CALL("sorecvfrom");
+ 	DEBUG_ARG("so = %lx", (long)so);
+@@ -530,7 +530,8 @@
+ {
+ 	struct sockaddr_in addr;
+ 	struct socket *so;
+-	int s, addrlen = sizeof(addr), opt = 1;
++	int s, opt = 1;
++	socklen_t addrlen = sizeof(addr);
+ 
+ 	DEBUG_CALL("solisten");
+ 	DEBUG_ARG("port = %d", port);
+--- slirp-1.0.17.old/src/tcp_subr.c	2004-09-07 04:25:10.000000000 +0200
++++ slirp-1.0.17/src/tcp_subr.c	2010-07-04 19:03:25.122052376 +0200
+@@ -463,7 +463,7 @@
+ {
+ 	struct socket *so;
+ 	struct sockaddr_in addr;
+-	int addrlen = sizeof(struct sockaddr_in);
++	socklen_t addrlen = sizeof(struct sockaddr_in);
+ 	struct tcpcb *tp;
+ 	int s, opt;
+ 
+@@ -658,7 +658,7 @@
+ 		{
+ 			struct socket *tmpso;
+ 			struct sockaddr_in addr;
+-			int addrlen = sizeof(struct sockaddr_in);
++			socklen_t addrlen = sizeof(struct sockaddr_in);
+ 			struct sbuf *so_rcv = &so->so_rcv;
+ 			
+ 			memcpy(so_rcv->sb_wptr, m->m_data, m->m_len);
+--- slirp-1.0.17.old/src/udp.c	2004-09-01 09:36:44.000000000 +0200
++++ slirp-1.0.17/src/udp.c	2010-07-04 19:04:12.130051788 +0200
+@@ -371,7 +371,7 @@
+ 	struct mbuf *m;
+ {
+ 	struct sockaddr_in addr;
+-        int addrlen = sizeof(addr);
++        socklen_t addrlen = sizeof(addr);
+ #ifdef EMULATE_TALK
+ 	CTL_MSG_OLD *omsg;
+ 	CTL_MSG *nmsg;
+@@ -596,7 +596,8 @@
+ {
+ 	struct sockaddr_in addr;
+ 	struct socket *so;
+-	int addrlen = sizeof(struct sockaddr_in), opt = 1;
++	int opt = 1;
++	socklen_t addrlen = sizeof(struct sockaddr_in);
+ 	
+ 	if ((so = socreate()) == NULL) {
+ 		free(so);
