@@ -5,13 +5,13 @@
   \\
   User-mode Linux virtualization \\ on the Grid
 }
-\author[R.\ Murri]{Riccardo Murri
-  \\ \texttt{<riccardo.murri@uzh.ch>}}%
+\author[S.\ Maffioletti]{Sergio Maffioletti
+  \\ \texttt{<sergio.maffioletti@gc3.uzh.ch>}}%
 \institute[GC3, University of Zurich]%
 {\href{http://www.gc3.uzh.ch/}{Grid Computing Competence Centre}, 
   \\ \href{http://www.uzh.ch/}{University of Zurich}
   \\ \url{http://www.gc3.uzh.ch/}}%
-\date{EGI TF 2011}%
+\date{EGI CF 2012}%
 
 \usepackage{ucs}
 \usepackage[utf8x]{inputenc}
@@ -33,6 +33,86 @@
 \begin{frame}
 \maketitle
 \end{frame}
+
+%% -----------------------------------------------------------------
+%% FOR REFERENCE:
+%%
+%% Here's the submitted abstract
+%
+% Overview (For the conference guide)
+% -----------------------------------
+% AppPot is a system for creating Linux virtual machines that can run
+% with most virtualization software (KVM, Xen, VirtualBox and UML are
+% supported) plus a set of scripts for controlling the execution of
+% noninteractive computational programs in the VM.
+%
+% Indeed, thanks to the use of "User-Mode Linux" virtualization,
+% AppPot VMs can run on Grid clusters as regular Grid jobs, without
+% the need for sysadmin support or root access.
+%
+% In particular, AppPot is a way to implement generic application
+% deployment on a computational Grid, and especially to enable users
+% to provide their own software to the computing cluster: users can
+% use an AppPot VM on their computer for coding, and then run the same
+% VM as a Grid jobs or in a Cloud IaaS infrastructure for production
+% runs.
+%
+% In this talk we give an overview on AppPot and its features, the
+% technology that makes it possible, and report on experiences running
+% it in production use within the NGI_CH SMSCG infrastructure.
+
+% Description of the Work 
+% -----------------------
+% AppPot's current incarnation is a
+% Debian-based VM, that has been optimized for optimal startup time
+% (9s from VM launch to payload start).  The VM supports either
+% console-mode interactive usage, or batch-mode non-interactive job
+% execution.
+%
+% Indeed, the AppPot VM is complemented by a set of scripts that
+% provide a way to start an AppPot VM and run a specified command into
+% it, all from the command-line.  This makes it possible to use AppPot
+% VMs as regular non-interactive batch-mode jobs.
+%
+% AppPot also features a snapshot-based mechanism that is used to
+% reduce bandwidth usage in Grid job submission: a "base" image can be
+% deployed to execution sites by the software administrator, and then
+% users can send the "differences" with their own development version.
+% The AppPot runtime automatically merges in the changes upon startup,
+% so that users' jobs are executed in an environment equivalent to the
+% one used by the users.
+
+% Impact
+% ------
+% AppPot is already used in production within the Swiss National Grid
+% Infrastructure (SMSCG, part of NGI_CH) to support applications from
+% several scientific domains like meteorology, economics, and
+% computational chemistry, and in general to ease Grid deployment and
+% support of user-developed code.
+%
+% In a similar vein, it has also been successfully used by the
+% COMPCHEM VO on NGI_IT resources for running computational chemistry
+% workflows comprising software developed in-house at the University
+% of Perugia.
+%
+% An AppPot-based compute node VM has been used in the Swiss project
+% VM-MAD to provide elastic expansion of a local clusters using
+% virtualised computing hardware drawn from the EC2 infrastructure.
+
+% Conclusions
+% -----------
+% AppPot has already seen quite some user interest, and the first
+% usage experiences in SMSCG have gotten positive feedback and show
+% that this interest is growing.
+
+% We expect much more widespread adoption, now that AppPot supports
+% all the most popular virtualization techniques, and runs
+% indifferently in Grid- and Cloud-based infrastructures.
+
+% We believe that AppPot can be an effective construction ingredient
+% infuture mixed Grid/Cloud infrastructures.
+
+%% -----------------------------------------------------------------
 
 
 \begin{frame}
