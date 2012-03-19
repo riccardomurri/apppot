@@ -1,0 +1,37 @@
+(TeX-add-style-hook "talk"
+ (lambda ()
+    (LaTeX-add-labels
+     "sec:1"
+     "sec:3"
+     "sec:5"
+     "sec:6"
+     "sec:7"
+     "sec:8"
+     "sec:9"
+     "sec:10"
+     "sec:11"
+     "sec:14"
+     "sec:13"
+     "sec:16"
+     "sec:15"
+     "sec:20"
+     "sec:21"
+     "sec:23"
+     "sec:18"
+     "sec:19"
+     "sec:17")
+    (TeX-run-style-hooks
+     "hyperref"
+     "graphicx"
+     "fancyvrb"
+     "color"
+     "array"
+     "babel"
+     "english"
+     "inputenc"
+     "utf8x"
+     "ucs"
+     "latex2e"
+     "beamer10"
+     "beamer")))
+
