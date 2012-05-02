@@ -229,7 +229,7 @@ what=$(file --dereference --brief "$apppot_img")
 case "$what" in
     'x86 boot sector'*)
         # disk image, determine boot partition
-        bootpart=$(/usr/bin/expr match "$what" '.*partition \([1-4]\): D=0x83, active')
+        bootpart=$(/usr/bin/expr match "$what" '.*partition \([1-4]\): ID=0x83, active')
         if [ -n "$bootpart" ]; then
             rootfs="/dev/ubda$bootpart"
         else
