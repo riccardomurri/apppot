@@ -6,7 +6,7 @@
 # Author: Riccardo Murri <riccardo.murri@gmail.com>
 #
 #
-# Copyright (C) 2009-2011 GC3, University of Zurich. All rights reserved.
+# Copyright (C) 2009-2012 GC3, University of Zurich. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -122,8 +122,14 @@ if [ -n "$APPPOT_IMAGE" ]; then
 else
     apppot="apppot.img"
 fi
+
+if [ -n "$APPPOT_MEM" ]; then
+    mem="$APPPOT_MEM"
+else
+    mem="512M"
+fi
+
 extra=''
-mem="512M"
 
 # try to provide sensible defaults
 if [ -x "`pwd`/slirp" ]; then
