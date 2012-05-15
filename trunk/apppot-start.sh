@@ -155,7 +155,7 @@ fi
 # parse command line
 while [ $# -gt 0 ]; do
     case "$1" in
-        --apppot) shift; apppot="$1" ;;
+        --apppot|--image) shift; apppot="$1" ;;
         --changes|--merge) shift; changes="$1" ;;
         --extra|-X) shift; extra="$extra $1" ;;
         --id|--umid) shift; umid="$1" ;;
