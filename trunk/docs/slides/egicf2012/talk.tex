@@ -1,0 +1,683 @@
+\documentclass{beamer}
+
+\title[AppPot]{%
+  \emph{AppPot} 
+  \\
+  User-mode Linux virtualization \\ on the Grid
+}
+\author[S.\ Maffioletti]{Sergio Maffioletti
+  \\ \texttt{<sergio.maffioletti@gc3.uzh.ch>}}%
+\institute[GC3, University of Zurich]%
+{\href{http://www.gc3.uzh.ch/}{Grid Computing Competence Centre}, 
+  \\ \href{http://www.uzh.ch/}{University of Zurich}
+  \\ \url{http://www.gc3.uzh.ch/}}%
+\date{EGI CF 2012}%
+
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+\usepackage[english]{babel}
+\usepackage{array}
+\usepackage{color}
+\usepackage{fancyvrb}
+\usepackage{graphicx}
+%\usepackage[spaces,hyphens]{url}
+\usepackage{hyperref}
+
+
+\usetheme{egi}
+\begin{document}
+
+\newcommand{\+}{\vspace{1em}}
+
+
+\begin{frame}
+\maketitle
+\end{frame}
+
+%% -----------------------------------------------------------------
+%% FOR REFERENCE:
+%%
+%% Here's the submitted abstract
+%
+% Overview (For the conference guide)
+% -----------------------------------
+% AppPot is a system for creating Linux virtual machines that can run
+% with most virtualization software (KVM, Xen, VirtualBox and UML are
+% supported) plus a set of scripts for controlling the execution of
+% noninteractive computational programs in the VM.
+%
+% Indeed, thanks to the use of "User-Mode Linux" virtualization,
+% AppPot VMs can run on Grid clusters as regular Grid jobs, without
+% the need for sysadmin support or root access.
+%
+% In particular, AppPot is a way to implement generic application
+% deployment on a computational Grid, and especially to enable users
+% to provide their own software to the computing cluster: users can
+% use an AppPot VM on their computer for coding, and then run the same
+% VM as a Grid jobs or in a Cloud IaaS infrastructure for production
+% runs.
+%
+% In this talk we give an overview on AppPot and its features, the
+% technology that makes it possible, and report on experiences running
+% it in production use within the NGI_CH SMSCG infrastructure.
+
+% Description of the Work 
+% -----------------------
+% AppPot's current incarnation is a
+% Debian-based VM, that has been optimized for optimal startup time
+% (9s from VM launch to payload start).  The VM supports either
+% console-mode interactive usage, or batch-mode non-interactive job
+% execution.
+%
+% Indeed, the AppPot VM is complemented by a set of scripts that
+% provide a way to start an AppPot VM and run a specified command into
+% it, all from the command-line.  This makes it possible to use AppPot
+% VMs as regular non-interactive batch-mode jobs.
+%
+% AppPot also features a snapshot-based mechanism that is used to
+% reduce bandwidth usage in Grid job submission: a "base" image can be
+% deployed to execution sites by the software administrator, and then
+% users can send the "differences" with their own development version.
+% The AppPot runtime automatically merges in the changes upon startup,
+% so that users' jobs are executed in an environment equivalent to the
+% one used by the users.
+
+% Impact
+% ------
+% AppPot is already used in production within the Swiss National Grid
+% Infrastructure (SMSCG, part of NGI_CH) to support applications from
+% several scientific domains like meteorology, economics, and
+% computational chemistry, and in general to ease Grid deployment and
+% support of user-developed code.
+%
+% In a similar vein, it has also been successfully used by the
+% COMPCHEM VO on NGI_IT resources for running computational chemistry
+% workflows comprising software developed in-house at the University
+% of Perugia.
+%
+% An AppPot-based compute node VM has been used in the Swiss project
+% VM-MAD to provide elastic expansion of a local clusters using
+% virtualised computing hardware drawn from the EC2 infrastructure.
+
+% Conclusions
+% -----------
+% AppPot has already seen quite some user interest, and the first
+% usage experiences in SMSCG have gotten positive feedback and show
+% that this interest is growing.
+
+% We expect much more widespread adoption, now that AppPot supports
+% all the most popular virtualization techniques, and runs
+% indifferently in Grid- and Cloud-based infrastructures.
+
+% We believe that AppPot can be an effective construction ingredient
+% infuture mixed Grid/Cloud infrastructures.
+
+%% -----------------------------------------------------------------
+
+
+\begin{frame}
+  \frametitle{What are we trying to solve?}
+  \label{sec:1}
+  
+  Two basic problems:
+  \begin{itemize}
+  \item \textbf{Deploying complex applications (at Grid sites)}
+  \item \textbf{Running own-written code on a Grid}
+  \end{itemize}
+
+  \+
+  One solution:
+  \begin{itemize}
+  \item virtual machines!
+  \end{itemize}
+\end{frame}
+
+
+% \begin{frame}
+%   \frametitle{Application deployment?}
+%   \label{sec:2}
+  
+%   \textbf{Many scientific codes require experience to be built properly.}
+%   \begin{itemize}
+%   \item This takes up precious sysadmin time.
+%   \item Worse, it can lead to incorrect deployment of applications.
+%   \item \emph{Worst}, on a Grid scale wasted sysadmin time is multiplied by a factor of \emph{N}
+%   \end{itemize}
+% \end{frame}
+
+
+\begin{frame}
+  \frametitle{Example 1: GAMESS(US)}
+  \label{sec:3}
+  
+  \textbf{Many scientific codes require experience to be built properly.}
+
+  \+
+  \href{http://www.msg.ameslab.gov/gamess/}{GAMESS(US)} is a program
+  for ab initio molecular quantum chemistry.
+
+  \+
+  \emph{Legacy build system, consisting in a number of C-shell scripts,
+  FORTRAN code preprocessors (written themselves in FORTRAN),
+  hand-editing files and much patience.}
+
+  \+
+  It's easy to get an incorrect build.
+
+  \+
+  And there's no validation suite, so you will only find out when
+  users complain.
+\end{frame}
+
+
+% \begin{frame}
+%   \frametitle{Running own-written code?}
+%   \label{sec:4}
+%    Users are actively working on a code, e.g., by implementing new
+%    algorithms.
+
+%    \+
+%    They can run basic tests on their laptop, but need more computing
+%    power for validation suites, etc.
+
+%    \+
+%    \textbf{Running on a heterogeneous grid poses interoperability and deployment problems}, 
+%    that users should not waste their time on.
+% \end{frame}
+
+
+\begin{frame}
+  \frametitle{Example 2: Alpine 3D}
+  \label{sec:5}
+  
+  Code developed by \href{http://www.wsl.ch/}{WSL} for
+  \href{http://www.slf.ch/ueber/organisation/schnee_permafrost/projekte/Alpine/index_EN}
+  {high resolution simulation of alpine surface processes}.
+
+  \+
+  Depends on the large
+  \href{http://www.slideshare.net/GEOFRAMEcafe/meteo-io-introduction}{MeteoIO}
+  library, plus some not-so-standard build procedure.
+  
+  \+
+  Alpine3D is an ongoing development effort.  Developers need to test
+  and validate new part of Alpine3D with some well-defined simulation
+  suites.
+
+  \+
+  Even simple simulations can take hours. \textbf{How can we support
+    running \emph{modified} Alpine3D on the Grid?}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{What is UML?}
+  \label{sec:6}
+  \href{http://user-mode-linux.sf.net/}{User-mode Linux} is a Linux virtualization technology, 
+  \emph{running entirely in user-space}.
+
+  \+
+  UML consists of a modified Linux kernel \emph{(guest)}, that runs as a
+  process within another Linux system \emph{(host)}.
+  
+  \+
+  Other than that, it's a regular kernel, so it can run \emph{any} Linux
+  distribution with \emph{any} configuration.
+
+  \+
+  {See: \url{http://user-mode-linux.sf.net/}}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{UML features}
+  \label{sec:7}
+  Any file in the host system can be a block device (\emph{ubdX}).
+  Uses \emph{copy-on-write}, so one filesystem image can be used by many
+  UML instances concurrently.
+
+  \+
+  Can mount any directory in the host filesystem as a local
+  \emph{hostfs} filesystem.
+  
+  \+
+  Outbound net connectivity with a helper program (\emph{slirp}).
+  
+  \+
+  Local networks of UML instances, backing on IP multicast.
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{AppPot}
+  \label{sec:8}
+  \begin{center}
+    \Large
+    Idea: 
+    \\
+    \textbf{Run a UML machine as a Grid job.}
+  \end{center}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{So what is AppPot?}
+  \label{sec:9}
+  AppPot consists of:
+  \begin{itemize}
+  \item a base image (with the AppPot boot script)
+    \begin{itemize}
+    \item \emph{raw} disk image
+    \item can be run in \emph{any} virtualization software: KVM, Xen,
+      VirtualBox (and obviously UML!)
+    \end{itemize}
+  \item a startup script \texttt{apppot-start}
+  \item three support programs \texttt{linux}, \texttt{slirp}, \texttt{empty}
+  \end{itemize}
+
+  \+
+  You can run an AppPot UML machine either locally on your computer,
+  or \textbf{on the Grid}.
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{How does it help with\ldots{} \emph{(I)}}
+  \label{sec:10}
+  
+  \emph{\ldots Complex application deployment?}
+
+  \+
+  An application expert creates an AppPot base image with the
+  software correctly installed and validated.
+  
+  \+
+  \textbf{Users just submit it as a Grid job.}
+
+  \+
+  Sysadmins do not need to be involved\ldots
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{How does it help with\ldots{} \emph{(II)}}
+  \label{sec:11}
+  
+  \emph{\ldots Running own code on the Grid?}
+
+  \+
+  A knowledgeable person creates a \emph{base image}.
+  
+  \+
+  Users get a copy of the base image, install their code in it and do
+  the development work (e.g., on their laptops).
+  
+  \+
+  When they want to do a production run, 
+  they \textbf{just run the modified image as a Grid job.}
+\end{frame}
+
+
+% \begin{frame}
+%   \frametitle{\ldots{}\href{http://www.originalpoetry.com/the-storm_4}{can see the storm coming}}
+%   \label{sec:12}
+  
+%   \begin{enumerate}
+%   \item How do I specify which command to run, exactly?
+%   \item Do I need to create a different filesystem image for each set of data?
+%   \item The filesystem image is \emph{large}, I cannot submit a 100 jobs with 1GB payload each!
+%   \item How do I get the output out of the UML?
+%   \end{enumerate}
+% \end{frame}
+
+
+
+\begin{frame}
+  \frametitle{Different image for each dataset?}
+  \label{sec:14}
+  \textbf{Do I need a separate image for each dataset?}
+  
+  \+
+  AppPot automatically mounts the current directory on \texttt{/home/user/job}.  
+
+  \+
+  You can read and write files on to the host filesystem through that.
+
+  \+
+  The job execution is mounted on \texttt{/home/user/job}.
+  So you have access to all the files you included in the input- and
+  output- sandboxes.
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Running commands}
+  \label{sec:13}
+  \textbf{How do I run a specific command in AppPot?}
+
+  \+
+  AppPot comes with a standardized startup script, and a modified
+  Linux boot script (installed as \texttt{/etc/rc.local}).
+
+  \+
+  Supports 4 different ways of executing a command:
+  \begin{itemize}
+  \item Give it on the command-line of \texttt{apppot-start.sh},
+  \item or provide an \texttt{apppot-run} script in the current directory,
+  \item or provide an \texttt{apppot-autorun} script \emph{within the AppPot image},
+  \item else, starts a shell on the main console and you just type it.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Collect UML output?}
+  \label{sec:16}
+  Did I tell you the job execution directory is mounted on
+  \texttt{/home/user/job}? Just copy your output there.
+
+  \+
+  As for STDIN and STDOUT, the \texttt{apppot-start} script takes care of
+  redirecting them.
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{A filesystem image is too large?}
+  \label{sec:15}
+  AppPot supports a \emph{base} + \emph{changes} mechanism.
+
+  \+
+  The command ``\texttt{apppot-snap base}'' records a snapshot of the current
+  system state (file sizes, timestamps, etc.).  This should be used by
+  sysadmins / application experts when they are done preparing the
+  base filesystem image.
+
+  \+
+  The command ``\texttt{apppot-snap changes}'' creates a tarball with all the
+  modifications since the last recorded base.
+
+  \+
+  Users only submit the changes, the startup script automatically
+  merges them into the running UML instance.
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Example: Running GFIT3C/ABC}
+
+  ABC: Quantum mechanical atom-diatom reactive scattering program.
+  \begin{itemize}
+  \item Input data (PES) produced by the GFIT3C program
+  \end{itemize}
+
+  \+ GFIT3C: Global fitting routine for triatomic systems.
+  \begin{itemize}
+  \item Input data is \emph{compiled in}
+  \item So, need to recompile before each run.
+  \item Old FORTRAN code, needs a specific compiler.
+  \end{itemize}
+
+  \+
+  \emph{Solution:}
+  \begin{itemize}
+  \item Install ABC + GFIT3C + the G95 compiler in a single
+    VM~image.
+  \item \texttt{apppot-autorun} script takes an input file and
+    performs the correct GFIT3C+ABC passes.
+  \item Run the image as a single Grid job.
+    {\hfill\tiny (contact: \href{mailto:alex.costantini@gmail.com}{A. Costantini, U. Perugia)}}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Limitations}
+  \label{sec:20}
+  Need to tweak \texttt{/proc/sys/vm/max\_map\_count} to allow UML VMs
+  to use $>256$MB of memory.
+
+  \+
+  Updating a base image requires all users to update their local
+  images as well.
+
+  \+
+  Running code in a UML machine comes with a performance penalty
+  (esp. for disk I/O).  Precise data yet to come.
+
+  \+
+  Only tested with Debian as a guest OS.  No plans to try other OSes
+  as we don't have the manpower for that.
+  \end{frame}
+
+
+\begin{frame}
+  \frametitle{Future work}
+  \label{sec:21}
+  \textbf{Support MPI.}  Two issues:
+  \begin{itemize}
+  \item UML-to-UML networking backs on IP multicast. Does the cluster
+    network fabric support it?
+  \item The startup script has to extract host allocation details
+    for each and every batch system / MPI library combination.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Any questions?}
+  \label{sec:23}
+  \begin{center}
+    AppPot home page: \href{http://AppPot.googlecode.com}{http://AppPot.googlecode.com}
+
+    \+
+    Source code: \texttt{svn co http://AppPot.googlecode.com/svn}
+    
+    \+
+    e-mail: \\ 
+    \texttt{riccardo.murri@gmail.com}, \texttt{sergio.maffioletti@gc3.uzh.ch}
+    
+    \+
+    \textbf{Thank you!}
+  \end{center}
+\end{frame}
+
+
+\appendix
+\begin{frame}
+  \begin{center}
+    {\Huge Additional material}
+  \end{center}
+\end{frame}
+
+\section{Examples of AppPot usage}
+
+\begin{frame}[fragile]
+  \frametitle{Customise the UML instance \emph{(I)}}
+\begin{semiverbatim}
+\$ apppot-start.sh --apppot ./apppot\_a3d.img /bin/bash
+...
+==== Starting AppPot 0.13 ...
+== Setting up AppPot user user(11527) in group users(4200) ...
+usermod: no changes
+== Mouting host directory '/home/rzuext/sergio' on local directory '/home/user/job' ...
+== Running command-line '/bin/bash' ...
+user@rootstrap:~\$ 
+\end{semiverbatim}
+
+Now you've got a \emph{sudo}-enabled promt \emph{in} the UML VM:
+\begin{itemize}
+  \item Customize the UML instance
+  \item Install new system components (apt-get)
+  \item Install new specific packages (i.e. MeteoIO\_2.0 for the A3D project)
+  \item if necessary, modify the UML configuration
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Customise the UML instance \emph{(II)}}
+Before closing the session, do:
+\begin{semiverbatim}
+user@rootstrap:~\$ \textbf{sudo apppot-snap base}
+WARNING: Deleting old base state file '/var/lib/apppot/apppot-snap.base', interrupting this command may leave the system without a valid base state.
+user@rootstrap:~\$ \textbf{ls -lrt /var/lib/apppot/apppot-snap.base}
+-rw-r--r-- 1 root root 389444 May  5 15:33 /var/lib/apppot/apppot-snap.base
+user@rootstrap:~\$ \textbf{exit}
+exit
+==== AppPot done, commencing shutdown ...
+INIT: no more processes left in this runlevel
+INIT: Switching to runlevel: 0
+...
+\end{semiverbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Deployed RTE}
+\begin{semiverbatim}\footnotesize
+\$ cat TEST/A3D\_UML
+...
+export A3D\_UML\_IMAGE=/share/grid/local\_repo/uml/images/apppot\_a3d.img
+...
+\end{semiverbatim}
+
+\begin{semiverbatim}\footnotesize
+\$ cat TEST/APPPOT-0
+...
+export APPPOT\_IMAGE=/share/grid/local\_repo/apppot/apppot.img
+export APPPOT\_KERNEL=/share/grid/local\_repo/apppot/bin/linux
+export APPPOT\_STARTUP=/share/grid/local\_repo/apppot/bin/apppot-start.sh
+export PATH=\$PATH:/share/grid/local\_repo/apppot/bin
+...
+\end{semiverbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Related \texttt{.xrsl}}
+\begin{semiverbatim}\small
+\$ \textbf{cat A3D\_uml.xrsl}
+&(executable = "$APPPOT\_STARTUP" )
+(arguments = "--apppot" "a3d.img.cow,$A3D\_UML\_IMAGE")
+(jobname = "A3D\_UML" )
+(inputFiles = 
+  ("A3D\_source.tgz" “./A3D\_source.tgz”) 
+  ("A3D\_simulation.tgz" "./A3D\_simulation.tgz") 
+  ("apppot-run" 
+   "gsiftp://idgc3grid01.uzh.ch/local\_repo/A3D/apppot-run-a3d.sh"))
+(stdout = "a3d.stdout" )
+(outputFiles = ("results.tgz" ""))
+(runtimeenvironment = "TEST/APPPOT-0")
+(runtimeenvironment = "TEST/A3D\_UML")
+(gmlog = ".a3d\_log")
+(join = yes)
+(executables = "apppot-run")
+\end{semiverbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Running a job}
+\begin{semiverbatim}\tiny
+\$ \textbf{ngstat -l gsiftp://idgc3grid01.uzh.ch:2811/jobs/89431304587100193572822}
+Job gsiftp://idgc3grid01.uzh.ch:2811/jobs/89431304587100193572822
+  Job Name: A3D\_UML
+  Status: FINISHED
+  Owner: /DC=ch/DC=switch/DC=slcs/O=Universitaet Zuerich/CN=Sergio Maffioletti FD0DDA88
+  Cluster: idgc3grid01.uzh.ch
+  Queue: all.q
+  Requested Number of CPUs: 1
+  Execution Nodes:
+    compute-1-395.local
+  stdout: stdout.txt
+  stderr: stdout.txt
+  Grid Manager Log Directory: .a3d\_log
+  Submitted: 2011-05-05 11:18:20
+  Completed: 2011-05-05 21:23:05
+  Submitted from: 130.60.40.14:37810;ocikbgtw.uzh.ch
+  Submitting Client: nordugrid-arc-0.8.3.1
+  Requested Runtime Environments:
+    TEST/APPPOT-0
+    TEST/A3D\_UML
+  Used CPU Time: 10 hours, 2 minutes
+  Used Wall Time: 10 hours, 4 minutes
+  Used Memory: 5473566 KiB
+\end{semiverbatim}
+\end{frame}
+
+
+\section{Use cases}
+
+\begin{frame}
+  \frametitle{Example: Running GAMESS}
+  \label{sec:18}
+  Base image contains GAMESS, correctly installed for Debian.
+
+  \+
+  Startup script runs GAMESS on the input files specified by the user.
+  
+  \+
+  No visible difference between calling this GAMESS appliance and the
+  real application.
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Example: GAMESS development}
+  \label{sec:19}
+
+  Base image contains GAMESS sources in \texttt{/home/user/gamess},
+  configured for compilation on Debian.  All needed development tools
+  installed. 
+  
+  GAMESS developers can hack the sources, recompile at will and test
+  locally.
+  
+  Then, they can send the \emph{changes} tarball as a Grid job to try out the
+  new version with some larger data set.
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Example: Alpine 3D \emph{(I)}}
+  \label{sec:17}
+  
+  Specialized base image with a predefined startup script \emph{inside}:
+  \begin{itemize}
+  \item expects a tarball with the (modified) sources to be available in
+    the sessiondir
+  \item expects simulation data to be available there as well
+  \item compiles the sources and run the simulation with it, reporting on
+    results.
+  \end{itemize}
+  
+  Intended as a base image to be available at Grid sites, for \emph{both:}
+  \begin{itemize}
+  \item Running a simulation with unmodified Alpine 3D code (for A3D users)
+  \item Running tests of customized A3D code (for developers)
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Example: Alpine 3D \emph{(II)}}
+  Usage model:
+  \begin{itemize}
+  \item Developers commit new code of the Alpine3D to SVN.
+  \item They launch the validation suite:
+    \begin{enumerate}
+    \item create tarball from SVN repo (\texttt{A3D{\_}source.tgz})
+    \item simulation suites already available on a SE
+    \item submit \emph{A3D{\_}uml.xrsl} job, using \emph{A3D} AppPot
+      image available on SMSCG sites
+    \item fetch results when job is done
+    \end{enumerate}
+  \end{itemize}
+\end{frame}  
+
+
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% x-symbol-8bits: nil
+%%% End: 
