@@ -1,0 +1,427 @@
+\documentclass[english,serif,mathserif,xcolor=pdftex,dvipsnames,table]{beamer}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                    LaTeX preamble                        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%% generic LaTeX packages/helpers
+\usepackage[utf8]{inputenc}
+%\usepackage[T1]{fontenc}
+\usepackage{babel}
+\usepackage{fixltx2e}
+
+\usepackage{relsize}
+\usepackage[normalem]{ulem}
+
+%% symbol families
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{latexsym}
+\usepackage{amssymb}
+
+%% graphics and color
+\usepackage{color}
+  % for the color names, see: http://en.wikibooks.org/wiki/LaTeX/Colors#Predefined_colors
+  % Apricot     Aquamarine      Bittersweet     Black
+  % Blue        BlueGreen       BlueViolet      BrickRed
+  % Brown       BurntOrange     CadetBlue       CarnationPink
+  % Cerulean    CornflowerBlue  Cyan    Dandelion
+  % DarkOrchid  Emerald         ForestGreen     Fuchsia
+  % Goldenrod   Gray    Green   GreenYellow
+  % JungleGreen Lavender        LimeGreen       Magenta
+  % Mahogany    Maroon  Melon   MidnightBlue
+  % Mulberry    NavyBlue        OliveGreen      Orange
+  % OrangeRed   Orchid  Peach   Periwinkle
+  % PineGreen   Plum    ProcessBlue     Purple
+  % RawSienna   Red     RedOrange       RedViolet
+  % Rhodamine   RoyalBlue       RoyalPurple     RubineRed
+  % Salmon      SeaGreen        Sepia   SkyBlue
+  % SpringGreen Tan     TealBlue        Thistle
+  % Turquoise   Violet  VioletRed       White
+  % WildStrawberry      Yellow  YellowGreen     YellowOrange
+\usepackage{graphicx}
+\usepackage{tikz}%
+  \usetikzlibrary{arrows,shapes}%
+  % For every picture that defines or uses external nodes, you'll have to
+  % apply the 'remember picture' style. To avoid some typing, we'll apply
+  % the style to all pictures.
+  \tikzstyle{every picture}+=[remember picture]%
+
+%% extended table support
+\usepackage{colortbl}%
+  %\newcommand{\cellcolor}[2]{\multicolumn{1}{>{\columncolor{#1}}c}{#2}}
+\usepackage{longtable}
+\usepackage{mdwtab}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{textcomp}
+
+%% programming languages support
+\usepackage[procnames]{listings}%
+  \lstloadlanguages{python,sh}%
+  \lstset{
+    language=python,%
+    % --- basic appearance ---
+    basicstyle=\small\ttfamily,%
+    %columns=fullflexible,% best results for proportional fonts
+    commentstyle=\slshape\color{PineGreen},%
+    keywordstyle=\bfseries,% or \normalfont
+    morekeywords={as,with,type,yield},%
+    %identifierstyle=\color{black},%
+    procnamestyle=\bfseries\color{BrickRed},%
+    procnamekeys={def},%
+    stringstyle=\color{MidnightBlue},%
+    showstringspaces=true,%
+    emph={self},%
+    emphstyle=\bfseries\color{gray},%
+    % --- escaping and special displays ---
+    escapechar=!,% text between "!" will be rendered as normal TeX
+    %moredelim=[il][\small\itshape]{\#},% ditto for text beween "#" and end-of-line
+    texcl,%
+    mathescape=false,%
+    %literate={*{=}{{$\gets$ }}1 {==}{{$=$ }}1 {<=}{{$\leq$ }}1 {>=}{{$\geq$ }}1 {!=}{{$\neq$ }}1},%
+    % --- display ---
+    %showspaces=false,%
+    %showstringspaces=false,%
+    %xleftmargin=2em,%
+    % --- line numbers ---
+    %numbers=left,%
+    %numberstyle=\tiny,%
+    %stepnumber=1,%
+    %firstnumber=1%
+  }%
+  \lstnewenvironment{python}{\lstset{language=python}}{}%
+  \lstnewenvironment{sh}{\lstset{language=sh}}{}%
+
+\usepackage{hyperref}
+  % for a summary of hyperrf options,see: http://www.andy-roberts.net/writing/latex/pdfs
+  \hypersetup{%
+    colorlinks=true,%
+    urlcolor=uzh@orange,% defined in `beamerthemeneu-de.sty`
+    % the following controls how the PDF is opened in the viewer
+    % there should be no reason to change it
+    pdfstartview=Fit,%
+    pdfpagelayout=SinglePage,%
+    pdfpagemode=UseThumbs
+  }%
+\usepackage{url}
+
+
+%% keep this last, as it loads some packages (which we cannot reload
+%% later with different options)
+\usetheme{uzhneu-en-informal}
+
+
+%% Use `\largeskip` or its alias `\+` to get a larger vertical white
+%% space between two lines/paragraphs:
+\newcommand{\largeskip}{\vspace{1em}}
+\newcommand{\+}{\largeskip}
+\setlength{\parsep}{1.0em}
+
+%% use `\HL` to highlight a region of text within a code listing
+\newcommand{\HL}{\colorbox{RedViolet!35}}
+
+%% use `\hl` for highlighting items in listings, etc.
+\newcommand{\hl}[1]{{\bfseries\color{uzh@blue} #1}} 
+
+%% for questions interspersed in the text
+\newenvironment{question}{\+ \em \textbf{Quiz:}\bgroup}{\egroup}
+
+%% for the `References: ...` at the bottom of the slide
+\newenvironment{references}{%
+  \largeskip \small%
+  \emph{Reference:}%
+  \bgroup
+}{%
+  \egroup%
+}
+
+%% for the `See also: ...` at the bottom of the slide
+\newenvironment{seealso}{%
+  \largeskip \small%
+  \emph{See also:}%
+  \bgroup
+}{%
+  \egroup%
+}
+
+%% for API description lists, etc.
+\newenvironment{describe}[1]{%
+  \+ \raggedright \hl{#1} \\%
+  \bgroup%
+}{%
+  \egroup%
+}
+
+% for typesetting "C++", see
+% http://stackoverflow.com/questions/2724760/how-to-write-c-in-latex
+\usepackage{relsize}
+\newcommand\ifmonospace{%
+  \ifdim\fontdimen3\font=0pt%
+}
+\newcommand\Cpp{%
+  \ifmonospace%
+  C++%
+  \else%
+  C\kern-.0667em\raise.20ex\hbox{\relsize{-2}{++}}%
+  \fi%
+  \spacefactor1000%
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                     document text                        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title[AppPot]{%
+  Introduction to AppPot
+}
+\author[R. Murri]{%
+  \textbf{Riccardo Murri} \\
+  Grid Computing Competence Center, \\
+  Organisch-Chemisches Institut, \\
+  University of Zurich
+}
+\date{May~15,~2012}
+
+
+\begin{document}
+
+% title frame
+\maketitle
+
+\begin{frame}
+  \frametitle{Contents}
+  \tableofcontents
+\end{frame}
+
+
+\section{What is AppPot?}
+
+\begin{frame}
+  \frametitle{What is AppPot?}
+  AppPot consists of:
+  \begin{itemize}
+  \item a base image file (by default named \texttt{apppot.img})
+  \item a startup script \texttt{apppot-start}
+  \item support programs \texttt{linux}, \texttt{slirp}, \texttt{empty}
+  \item (Plus an ARC RTE specifing the location of all the above.)
+  \end{itemize}
+
+  \+
+  You can run an AppPot UML machine either locally on your computer,
+  or \emph{on a Grid through ARC}.
+\end{frame}
+
+\begin{frame}
+  \frametitle{What is User-Mode Linux?}
+  \href{http://user-mode-linux.sf.net/}{User-mode Linux} (UML for
+  short) is a Linux paravirtualization system, \emph{running entirely
+    in user-space}.
+
+  \+
+  UML consists of a modified Linux kernel \emph{(guest)}, that runs as a
+  process within another Linux system \emph{(host)}.
+  
+  \+
+  Other than that, it's a regular kernel, so it can run \emph{any} Linux
+  distribution with \emph{any} configuration.
+\end{frame}
+
+\begin{frame}
+  \frametitle{AppPot/UML}
+  AppPot can run on many virtualization systems, like KVM, VirtualBox
+  and UML.
+
+  \+ But only UML makes it possible to run AppPot appliances as jobs
+  in the Grid.
+\end{frame}
+
+
+\section{Basic AppPot usage}
+
+\begin{frame}[fragile,fragile]
+  \frametitle{Starting AppPot}
+  To start AppPot, simply type the command:
+\begin{semiverbatim}
+\$ \textbf{apppot-start}
+\end{semiverbatim}
+
+  \+ Calling AppPot this way will fire up a text console, with the
+  \texttt{bash} shell running in the AppPot VM.
+\end{frame}
+
+\begin{frame}
+  \frametitle{The AppPot console}
+  There's only one console in AppPot, and no graphics.
+
+  \+
+  But the only console runs \href{http://www.gnu.org/s/screen/}{GNU
+    \texttt{screen}}, so you can use it to get more shells.
+
+  \+
+  All \texttt{screen} commands use \textsl{\color{uzh@blue} Ctrl+A} as a prefix,
+  followed~by:
+  \begin{description}
+  \item[c] for starting a new \textbf{c}onsole
+  \item[n] for switching to the \textbf{n}ext console
+  \item[p] for switching to the \textbf{p}revious console
+  \item[?] for getting on-screen help
+  \end{description}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Exchanging files with the host}
+  The directory \texttt{/home/user/job} is linked to the directory
+  \emph{(on the host computer)} where you started AppPot.
+
+  \+ 
+  You can use it to exchange files between the AppPot VM and the
+  host computer.
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{System administration in AppPot}
+  There's only one user account, named \texttt{user}.
+
+  \+
+  This account has unrestricted password-less \texttt{sudo} access. 
+
+  \+
+  So you can use it to run administrative commands, 
+  for~example:
+\begin{semiverbatim}
+\$ \textbf{sudo} apt-get clean
+\end{semiverbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The ``changes'' mechanism}
+  AppPot supports a ``changes'' mechanism to send only the
+  differences with a base over the network.  
+
+  \+
+  The changes are merged at the execution site with a ``base'' image
+  that is already deployed.
+
+  \+
+  To create a snapshot of the changes, use this command:
+\begin{semiverbatim}
+\$ sudo \textbf{apppot-snap changes}
+\end{semiverbatim}
+  This saves the changes into file: \texttt{/home/user/job/apppot-changes.tar.gz}
+
+  \+
+  If a file with the name \texttt{apppot-changes.tar.gz} is present in
+  the directory where \texttt{apppot-start} is run, it will be extracted
+  in the root AppPot VM filesystem.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Using alternate images}
+  \+ Calling just \texttt{apppot-start} will start the AppPot image
+  contained in the file \texttt{apppot.img} in your current directory.
+
+  \+ To specify a different image file, use the \texttt{--apppot}
+  option like this:
+\begin{semiverbatim}
+\$ apppot-start \textbf{--apppot a-different-apppot.img}
+\end{semiverbatim}
+
+  \+ If you want to run AppPot without making any changes to an image
+  file, just make the file \emph{read-only}.  AppPot will save any
+  modifications to a \emph{copy on write} (COW) file, that you can
+  later delete, or merge with the main image.
+\end{frame}
+
+
+\section{Running AppPot on a Grid}
+
+\begin{frame}[fragile]
+  \frametitle{ARC Run-Time Environments}
+  ARC supports \emph{Run-Time Environments} (RTE), which are tags
+  specifying what software is installed/supported at a site.
+
+  \+
+  A job can request a particular RTE by including in the xRSL
+  description a line like the one below.
+\begin{semiverbatim}
+(runTimeEnvironment="\emph{RTE/NAME}")
+\end{semiverbatim}
+
+  \+
+  The RTE name for this current version of AppPot is: \texttt{ENV/APPPOT-0.26}
+\end{frame}
+
+\begin{frame}
+  {\Huge TO-DO}
+\end{frame}
+
+
+\section{Installation}
+
+\begin{frame}
+  \frametitle{Installation, I}
+  {\em The following installation instructions work on Debian/Ubuntu systems.}
+
+  \emph{1.} Add the GC3 software repository as an APT source.
+  
+  \+ Download
+  {\small\url{http://www.gc3.uzh.ch/teaching/lsci2011/lab11/gc3.list}} and
+  move it to \texttt{/etc/apt/sources.list.d/gc3.list}
+
+  \+
+  \emph{2.} Run \texttt{sudo apt-get update} to pull the new package
+  descriptions. 
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Installation, II}
+  \emph{3.} Install the \texttt{apppot-start} package:
+\begin{semiverbatim}
+\$ {sudo apt-get install} \textbf{apppot-start}
+\end{semiverbatim}
+
+  \+
+  \textbf{Note:} there's also an \texttt{apppot} package, that you
+  should \textbf{not} install, as it transforms your boot sequence into
+  the one used by the AppPot VM.
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Installation, III}
+  \emph{4.} Download the AppPot VM disk image from:
+  {\small\url{http://www.gc3.uzh.ch/download/apppot/apppot0.26.disk.img}}
+
+  \+
+  \emph{5.} Start it using the command:
+\begin{semiverbatim}
+\$ \textbf{apppot-start} --apppot apppot0.26.disk.img
+\end{semiverbatim}
+\end{frame}
+
+
+\section{The End}
+
+\begin{frame}
+  \frametitle{More stuff}
+  \begin{center}
+    AppPot home page: \href{http://AppPot.googlecode.com}{http://AppPot.googlecode.com}
+
+    \+
+    Source code: \texttt{svn co http://AppPot.googlecode.com/svn}
+    
+    \+
+    e-mail: \texttt{riccardo.murri@gmail.com}, \texttt{sergio.maffioletti@gc3.uzh.ch}
+  \end{center}
+\end{frame}
+
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
