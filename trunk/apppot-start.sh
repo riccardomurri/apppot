@@ -175,6 +175,9 @@ done
 
 ## main
 
+require_command hostname
+unique="$(hostname).$$"
+
 # parse the `--apppot` argument and check for existence of the backing file
 case "$apppot" in
     # UMLx allows both `ubdX=cow,back` and `ubdX=cow:back`
@@ -216,7 +219,7 @@ else
 fi
 
 if [ -z "$umid" ]; then
-    umid=apppot."$(hostname).$$"
+    umid="apppot.${unique}"
 fi
 
 if [ -n "$changes" ]; then
@@ -304,7 +307,7 @@ elif have_command empty && stdin_is_not_dev_null; then
     exec < /dev/null
     
     # start UMLx
-    empty -f -i .apppot.stdin -o .apppot.stdout $linux \
+    empty -f -i ".apppot.${unique}.stdin" -o ".apppot.${unique}.stdout" $linux \
         umid="$umid" \
         mem="$mem" \
         hostfs=/ \
@@ -322,10 +325,10 @@ elif have_command empty && stdin_is_not_dev_null; then
         -- "$cmdline"
     
     # send original STDIN to the UMLx through the named pipe
-    (empty -s -o .apppot.stdin -c 0<&3) &
+    (empty -s -o ".apppot.${unique}.stdin" -c 0<&3) &
     
     # send UMLx console output to STDOUT
-    cat .apppot.stdout
+    cat ".apppot.${unique}.stdout"
 
 
 else
@@ -339,15 +342,15 @@ else
     #   - connect the UMLx instance to the read end of the FIFO,
     #     and use STDIN/STDOUT for the system console
     #
-    mkfifo .apppot.stdin \
-        || die 1 "Cannot create FIFO '`pwd`/.apppot.stdin'"
-    (sleep 365d) > .apppot.stdin &
+    mkfifo ".apppot.${unique}.stdin" \
+        || die 1 "Cannot create FIFO '`pwd`/.apppot.${unique}.stdin'"
+    (sleep 365d) > ".apppot.${unique}.stdin" &
     stdin_pid=$!
     
     # ensure the FIFO is removed and the `sleep` process is killed
     cleanup () {
         kill $stdin_pid
-        rm -f .apppot.stdin
+        rm -f ".apppot.${unique}.stdin"
     }
     trap "cleanup" EXIT
     
@@ -376,5 +379,5 @@ else
         apppot.gid=$APPPOT_GID \
         apppot.jobdir=`pwd` \
         -- "$cmdline" \
-        < .apppot.stdin
+        < ".apppot.${unique}.stdin"
 fi
