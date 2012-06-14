@@ -44,22 +44,22 @@ first non-option argument (which must be PROG):
                   You can also specify a pair COWFILE:IMAGEFILE,
                   in which case IMAGEFILE will be opened read-only
                   and all changes will be written to COWFILE instead.
-                  
-  --changes FILE  Merge the specified changes file into the AppPot system 
-                  image.  FILE must have been created with the 
+
+  --changes FILE  Merge the specified changes file into the AppPot system
+                  image.  FILE must have been created with the
                   'apppot-snap changes' command (which see).
-                  
+
   --mem NUM       Amount of memory to allocate to the
                   AppPot system image; use the 'M' or 'G'
                   suffix to denote MB or GB respectively.
-                  
+
   --slirp PATH    Use the executable found at PATH as
                   the 'slirp' command for providing
                   IP network access.
-                  
+
   --uml PATH      Use the UML 'linux' executable found at PATH.
-                  
-  --id NAME       Use NAME to control the running instance 
+
+  --id NAME       Use NAME to control the running instance
                   with 'uml_mconsole'.
 
   --extra ARG     Append ARG to the UML kernel command-line.
@@ -114,7 +114,7 @@ is_absolute_path () {
 }
 
 
-## parse command-line 
+## parse command-line
 
 # defaults
 if [ -n "$APPPOT_IMAGE" ]; then
@@ -175,7 +175,11 @@ done
 
 ## main
 
+require_command expr
+require_command file
 require_command hostname
+require_command readlink
+
 unique="$(hostname).$$"
 
 # parse the `--apppot` argument and check for existence of the backing file
@@ -195,7 +199,7 @@ case "$apppot" in
         apppot_img="$apppot"
         ;;
 esac
-if ! [ -r "$apppot_img" ]; then 
+if ! [ -r "$apppot_img" ]; then
     die 1 "Cannot read AppPot image file '$apppot_img' - aborting."
 fi
 if [ -z "$apppot_cow" ] && [ ! -w "$apppot_img" ]; then
@@ -223,17 +227,17 @@ if [ -z "$umid" ]; then
 fi
 
 if [ -n "$changes" ]; then
-    if ! is_absolute_path "$changes"; then
-        changes="$(pwd)/${changes}"
+    # ensure `apppot.changes` points to an absolute path
+    _changes="$(readlink --canonicalize-existing ${changes})"
+    if [ $? -ne 0 ]; then
+        die 1 "Cannot resolve path to changes file '${changes}' (see above)."
     fi
-    opt_changes="apppot.changes=${changes}"
+    opt_changes="apppot.changes=${_changes}"
 fi
 
-# determine whether $apppot is a filesystem or disk image, 
+# determine whether $apppot is a filesystem or disk image,
 # and generate a `root=...` kernel parameter
 # XXX: complicated heuristics, may fail unpredictably
-require_command expr
-require_command file
 what=$(file --dereference --brief "$apppot_img")
 case "$what" in
     'x86 boot sector'*)
@@ -251,7 +255,6 @@ case "$what" in
         rootfs=/dev/ubda
         ;;
 esac
-            
 
 
 # gather environmental information
@@ -263,6 +266,9 @@ if [ -n "$TERM" ]; then
     opt_term="TERM=$TERM"
 fi
 
+jobdir="$(readlink --canonicalize .)"
+
+
 # prepare command-line invocation
 cmdline=''
 for arg in "$@"; do
@@ -272,7 +278,7 @@ done
 # UMLx cannot use stdin for console input if it is connected to a file
 # or other no-wait stream (e.g., /dev/null); in order to make sure
 # that this startup script can run with STDIN connected to any stream,
-if test -t 0; then 
+if test -t 0; then
     # STDIN is a terminal, start UMLx as usual
     $linux \
         umid="$umid" \
@@ -289,7 +295,7 @@ if test -t 0; then
         $extra \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
-        apppot.jobdir=`pwd` \
+        apppot.jobdir="${jobdir}" \
         -- "$cmdline"
 
 # STDIN is not a terminal; what we can do now depends on the
@@ -302,10 +308,10 @@ if test -t 0; then
 elif have_command empty && stdin_is_not_dev_null; then
     # save STDIN for later use with `empty -s`
     exec 3<&0
-    
+
     # detach from the input stream
     exec < /dev/null
-    
+
     # start UMLx
     empty -f -i ".apppot.${unique}.stdin" -o ".apppot.${unique}.stdout" $linux \
         umid="$umid" \
@@ -321,12 +327,12 @@ elif have_command empty && stdin_is_not_dev_null; then
         $extra \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
-        apppot.jobdir=`pwd` \
+        apppot.jobdir="${jobdir}" \
         -- "$cmdline"
-    
+
     # send original STDIN to the UMLx through the named pipe
     (empty -s -o ".apppot.${unique}.stdin" -c 0<&3) &
-    
+
     # send UMLx console output to STDOUT
     cat ".apppot.${unique}.stdout"
 
@@ -336,9 +342,9 @@ else
     require_command mkfifo
     require_command sleep
 
-    # No helper programs, we use the following trick: 
+    # No helper programs, we use the following trick:
     #   - create a named FIFO
-    #   - connect a process that writes no output to the write end of the FIFO 
+    #   - connect a process that writes no output to the write end of the FIFO
     #   - connect the UMLx instance to the read end of the FIFO,
     #     and use STDIN/STDOUT for the system console
     #
@@ -346,14 +352,14 @@ else
         || die 1 "Cannot create FIFO '`pwd`/.apppot.${unique}.stdin'"
     (sleep 365d) > ".apppot.${unique}.stdin" &
     stdin_pid=$!
-    
+
     # ensure the FIFO is removed and the `sleep` process is killed
     cleanup () {
         kill $stdin_pid
         rm -f ".apppot.${unique}.stdin"
     }
     trap "cleanup" EXIT
-    
+
     # I found no way of conveying arbitrary STDIN content into the
     # named FIFO; so this trick only works for simulating a null
     # STDIN, so let's warn users.
@@ -361,7 +367,7 @@ else
     if stdin_is_not_dev_null; then
         warn "Redirecting output from /dev/null, any content to STDIN will be lost."
     fi
-    
+
     # start UMLx with input from the FIFO
     $linux \
         umid="$umid" \
@@ -377,7 +383,7 @@ else
         $extra \
         apppot.uid=$APPPOT_UID \
         apppot.gid=$APPPOT_GID \
-        apppot.jobdir=`pwd` \
+        apppot.jobdir="${jobdir}" \
         -- "$cmdline" \
         < ".apppot.${unique}.stdin"
 fi
