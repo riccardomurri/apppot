@@ -7,7 +7,7 @@
 #
 # Author: Riccardo Murri <riccardo.murri@gmail.com>
 #
-# Copyright (C) 2009-2011 GC3, University of Zurich. All rights reserved.
+# Copyright (C) 2009-2012 GC3, University of Zurich. All rights reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -55,13 +55,24 @@ value () {
 }
 
 
+# warn [MSG]
+#
+# Output MSG to STDERR, with a suitable "warning" prefix.
+# If MSG is omitted, read it from STDIN.
+#
+warn () {
+  (echo -n "== WARNING: ";
+      if [ $# -gt 0 ]; then echo "$@"; else cat; fi) 1>&2
+}
+
+
 # setup_apppot_user UID GID [USER GROUP]
 #
 # Create a user with the given UID and GID.  If given, arguments USER
 # and GROUP specify the UNIX user name and primary group name; if
 # omitted, they default to `user` (user name) and `users` (group
 # name).
-# 
+#
 setup_apppot_user () {
     # parse arguments
     uid=${1:?Missing required argument UID to setup_apppot_user}
@@ -115,7 +126,7 @@ __EOF__
 #
 # Mount host directory HOSTDIR onto local mount point MOUNTDIR
 #
-mount_hostfs () { 
+mount_hostfs () {
     hostdir=${1:?Missing required parameter HOSTDIR to 'mount_hostfs'}
     mountdir=${2:?Missing required parameter MOUNTDIR to 'mount_hostfs'}
 
@@ -124,7 +135,7 @@ mount_hostfs () {
         mkdir -p "$mountdir"
         mount -t hostfs -o "$hostdir" host "$mountdir"
     else
-        echo "== WARNING: No 'hostfs' support in this kernel, cannot mount '$hostdir' on '$mountdir' ..."
+        warn "No 'hostfs' support in this kernel, cannot mount '$hostdir' on '$mountdir' ..."
         return 1
     fi
 }
@@ -139,15 +150,17 @@ merge_changes () {
     changes_file="${1:?Missing required parameter FILE to 'merge_changes'}"
 
     echo "== Merging changes from host file '$changes_file' ..."
-    mount -t hostfs -o / hostroot /mnt
-    if [ ! -r "/mnt/$changes_file" ]; then
-        warn "Cannot read changes file '$changes_file': not merging changes."
-        return 1
+    if mount -t hostfs -o / hostroot /mnt; then
+        if [ ! -r "/mnt/$changes_file" ]; then
+            warn "Cannot read changes file '$changes_file': not merging changes."
+            rc=1
+        else
+            apppot-snap merge "/mnt/$changes_file"
+            rc=$?
+        fi
+        umount /mnt
+        return $rc
     fi
-    apppot-snap merge "/mnt/$changes_file"
-    rc=$?
-    umount /mnt
-    return $rc
 }
 
 
@@ -156,7 +169,7 @@ merge_changes () {
 # Set the `TERM` environment variable to the given value,
 # or fall back to the DEFAULT if the specified
 # terminal is not supported on this system.
-# 
+#
 # If DEFAULT is omitted, use 'vt100'.
 #
 setup_term () {
@@ -166,7 +179,7 @@ setup_term () {
     term_name=`tput -T"$term" longname`
     if [ -z "$term_name" ]; then
         # terminal not supported, fall back to default
-        echo "== WARNING: Terminal '$term' not supported, falling back to '$default_term'."
+        warn "Terminal '$term' not supported, falling back to '$default_term'."
         export TERM="$default_term"
     else
         echo "== Using terminal $name"
