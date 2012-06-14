@@ -1,3 +1,17 @@
+apppot (0.27-1) squeeze; urgency=low
+
+  * Put `linux-image-*` packages on hold, so that upgrades 
+    from within UML do not try to run `update-grub`. (Thanks 
+    to Th. Wuest for the report)
+  * `apppot-start` resolves symlinks before starting the VM: changes files
+    and job directories should be properly handled even when they are
+    symlinks. (Thanks to Th. Wuest for the report)
+  * Detect Linux boot partition in disk-based images. (Fixes Issue 10,
+    thanks to Tyanko Aleksiev for the fix.)
+  * apppot-start: use $APPPOT_MEM to set the default of the `--mem` option.
+
+ -- Riccardo Murri <riccardo.murri@gmail.com>  Thu, 14 Jun 2012 07:58:00 +0200
+
 apppot (0.26-1) squeeze; urgency=low
 
   * Disable consoles in /etc/inittab on install; re-enable them upon remove.
